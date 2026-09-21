@@ -16,7 +16,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 .netwrap{overflow-x:auto}.net{min-width:620px;width:100%;height:auto}.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.78rem}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}.slider-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin-top:8px}.slider-row input{width:100%}
 .tablewrap{overflow-x:auto}.tbl{width:100%;border-collapse:collapse;font-size:.83rem}.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:8px 9px;text-align:right;white-space:nowrap}.tbl th:first-child,.tbl td:first-child{text-align:left}.tbl th{background:#f7f9fc;color:#42516a}.tbl tr.selected{background:#eef4ff}.tbl input{width:92px;border:1px solid var(--line);padding:6px;border-radius:6px;text-align:right}
 .matrix{display:grid;gap:4px}.cell{border:1px solid var(--line);border-radius:6px;text-align:center;padding:9px 4px;background:white;min-width:38px}.cell.hot{background:#fff1b8;border-color:#e5ab00;font-weight:850}.cell.out{background:#eaf1ff;border-color:#8ab0ff;font-weight:850}.cell.neg{background:#feeceb}.image-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;max-width:360px}.pixel{aspect-ratio:1;border:1px solid #cdd6e3;border-radius:5px;background:white;display:grid;place-items:center;font-size:.75rem}.pixel.on{background:#27364f;color:white}.pixel.focus{outline:3px solid #f59e0b;outline-offset:-3px}.kernel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:230px}.kernel-grid input{text-align:center;padding:8px;border:1px solid var(--line);border-radius:6px;width:100%}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.rnn-flow{overflow-x:auto}.flowline{display:flex;align-items:center;gap:8px;min-width:900px;padding:14px 4px}.node{width:105px;min-width:105px;text-align:center}.circle{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;margin:auto;border:3px solid #8aa9df;background:#f7faff;font-weight:850}.node.active .circle{border-color:#f59e0b;background:#fff7d6}.arrow{font-size:1.5rem;color:#7a879b}.under{font-size:.78rem;color:var(--muted);margin-top:6px}.footer{margin:24px 0 6px;color:var(--muted);font-size:.8rem;text-align:center}.hide{display:none!important}.tiny{font-size:.78rem}.status{font-size:.82rem;color:var(--muted);min-height:1.2em;margin-top:7px}.phase-pill{display:inline-block;border-radius:999px;padding:5px 9px;background:var(--blue2);color:#174ea6;font-size:.76rem;font-weight:850;margin-bottom:8px}.phase-pill.backward{background:var(--red2);color:var(--red)}.phase-pill.loss{background:var(--orange2);color:var(--orange)}
-.rgb-note{font-size:.78rem;color:var(--muted)}@media(max-width:900px){.grid{grid-template-columns:1fr}.three,.two{grid-template-columns:1fr}.hero{flex-direction:column}.badge{white-space:normal}.app{padding:14px}.form-grid{grid-template-columns:1fr 1fr}}
+.dt-tree-stage{overflow-x:auto;padding:12px}.dt-subtree{text-align:center;min-width:180px}.dt-tree-node{display:inline-block;min-width:165px;max-width:240px;border:2px solid var(--line);border-radius:12px;padding:9px 11px;background:#fff;box-shadow:0 4px 14px rgba(31,52,80,.06);font-size:.8rem;line-height:1.4}.dt-tree-node.split{border-color:#2563eb;background:#f7faff}.dt-tree-node.leaf-yes{border-color:#15803d;background:#eaf8ef}.dt-tree-node.leaf-no{border-color:#b42318;background:#feeceb}.dt-tree-node.pending{border-style:dashed;border-color:#f59e0b;background:#fffaf0}.dt-children{display:flex;justify-content:center;align-items:flex-start;gap:20px;margin-top:14px}.dt-branch{display:grid;gap:6px;justify-items:center}.dt-edge-label{font-size:.72rem;color:var(--muted);font-weight:800}.dt-tree-stage .math{display:inline-block;text-align:left}.rgb-note{font-size:.78rem;color:var(--muted)}@media(max-width:900px){.grid{grid-template-columns:1fr}.three,.two{grid-template-columns:1fr}.hero{flex-direction:column}.badge{white-space:normal}.app{padding:14px}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr}.tab{flex:1}.card{padding:13px}}
 </style>
 </head>
@@ -100,20 +100,25 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <aside class="card"><h2>Linear Regression: Cats & Dogs</h2><p class="hint"><b>Illustrative synthetic dataset.</b> We use 10 animals and predict <b>whisker length (cm)</b> from <b>ear flappiness</b>.</p><div class="callout"><b>Feature x:</b> Ear flappiness score (0 = rigid, 10 = very floppy)<br><b>Target Y:</b> Whisker length in cm<br><br><b>Model:</b> Ŷ = b₀ + b₁x</div><div class="controls"><button id="lrPrev" class="secondary">← Previous epoch</button><button id="lrNext" class="secondary">Next epoch →</button><button id="lrGdAuto" class="secondary">▶ Animate 1→5</button><button id="lrGdPause" class="secondary">⏸ Pause</button></div><button id="lrClosed" class="primary">Show least-squares derivation</button></aside>
 <div class="stack">
 <div class="card"><div class="metric-row"><div class="metric"><small>Training epoch</small><strong id="lrEpochLabel">1 / 5</strong></div><div class="metric"><small>Current slope b₁</small><strong id="lrSlope">–</strong></div><div class="metric"><small>Current intercept b₀</small><strong id="lrIntercept">–</strong></div><div class="metric"><small>Current MSE</small><strong id="lrMse">–</strong></div></div><div class="slider-row"><span>1</span><input id="lrEpoch" type="range" min="1" max="5" value="1"><span>5</span></div></div>
-<div class="card"><div class="two"><div><h3>Training progression: regression line</h3><canvas id="lrCanvas" width="660" height="390" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">Earlier epoch lines remain faintly visible; the current epoch is emphasized.</p></div><div><h3>Loss progression</h3><canvas id="lrLossCanvas" width="480" height="300" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">Mean squared error should decrease as the line approaches the data.</p></div></div></div>
-<div class="card"><h3>10-row cat/dog teaching dataset</h3><div id="lrData" class="tablewrap"></div></div>
-<div id="lrGdMath" class="card"></div>
-<div id="lrMath" class="card"></div>
-<div class="card"><h3>Actual Y, Predicted Ŷ, residual and squared error</h3><div id="lrResiduals" class="tablewrap"></div></div>
+<div class="card"><div class="two"><div><h3>Training prog<section id="dtree" class="panel">
+<div class="grid">
+<aside class="card"><h2>Decision Tree: Loves Batman?</h2><p class="hint">Build the complete tree one split at a time. Target: <b>Loves Batman</b>. Predictors: <b>Age</b>, <b>Loves Movies</b>, and <b>Loves Cartoons</b>.</p>
+<div class="callout green"><b>Choose split criterion</b><div class="controls" style="margin-top:8px"><button id="dtGiniBtn" class="secondary">Gini Impurity</button><button id="dtEntropyBtn" class="secondary">Entropy / Information Gain</button></div></div>
+<div id="dtFormula" class="math" style="margin-top:10px"></div>
+<div class="controls"><button id="dtPrevStep" class="secondary">← Previous split</button><button id="dtNextStep" class="secondary">Next split →</button><button id="dtAutoBuild" class="secondary">▶ Build tree</button><button id="dtPauseBuild" class="secondary">⏸ Pause</button></div>
+<button id="dtFinalTree" class="primary">Show Final Tree</button>
+</aside>
+<div class="stack">
+<div class="card"><div class="metric-row"><div class="metric"><small>Build step</small><strong id="dtStepLabel">0 / 4</strong></div><div class="metric"><small>Current node</small><strong id="dtNodeLabel">Root</strong></div><div class="metric"><small>Criterion</small><strong id="dtCriterionLabel">Gini impurity</strong></div><div class="metric"><small>Tree status</small><strong id="dtStatusLabel">Starting</strong></div></div><div class="slider-row"><span>Start</span><input id="dtBuildStep" type="range" min="0" max="4" value="0"><span>Final</span></div></div>
+<div class="card"><h3>12-row training dataset</h3><p class="hint">1 = Yes/True, 0 = No/False. The rows belonging to the node currently being split are highlighted.</p><div id="dtData" class="tablewrap"></div></div>
+<div class="card"><h3>Tree construction — current stage</h3><div id="dtTreeBuild" class="dt-tree-stage"></div></div>
+<div id="dtMath" class="card"></div>
+<div class="card"><h3>Candidate splits at the current node</h3><div id="dtRanking" class="tablewrap"></div></div>
+<div class="card"><h3>Final complete tree</h3><p class="hint">This panel always shows the final tree for the selected criterion; the panel above shows how it is constructed step by step.</p><div id="dtFinalTreeView" class="dt-tree-stage"></div></div>
 </div></div>
 </section>
 
-<section id="dtree" class="panel">
-<div class="grid">
-<aside class="card"><h2>Decision Tree: Loves Batman?</h2><p class="hint">Target: <b>Loves Batman</b>. Candidate predictors: <b>Age</b>, <b>Loves Movies</b>, and <b>Loves Cartoons</b>.</p>
-<div class="callout green"><b>Choose split criterion</b><div class="controls" style="margin-top:8px"><button id="dtGiniBtn" class="secondary">Gini Impurity</button><button id="dtEntropyBtn" class="secondary">Entropy / Information Gain</button></div></div>
-<div id="dtFormula" class="math" style="margin-top:10px"></div>
-<label class="field" style="margin-top:12px">Candidate split<select id="dtCandidate"></select></label>
+split<select id="dtCandidate"></select></label>
 <button id="dtBest" class="primary">Jump to best split</button>
 </aside>
 <div class="stack">
@@ -545,7 +550,8 @@ $('#lrClosed').addEventListener('click',()=>{$('#lrMath').scrollIntoView({behavi
 $('#lrGdAuto').addEventListener('click',()=>{if(lrTimer)return;let e=Number($('#lrEpoch').value);if(e>=5)e=0;lrTimer=setInterval(()=>{e++;$('#lrEpoch').value=e;renderLr();if(e>=5)stopLr()},1050)});$('#lrGdPause').addEventListener('click',stopLr);
 
 
-// Decision Tree — Age / Movies / Cartoons -> Loves Batman
+
+// Decision Tree — full greedy tree builder
 const dtRows = [
   {id:1,age:45,movies:1,cartoons:0,batman:1},
   {id:2,age:20,movies:1,cartoons:0,batman:1},
@@ -560,169 +566,135 @@ const dtRows = [
   {id:11,age:29,movies:1,cartoons:0,batman:1},
   {id:12,age:41,movies:1,cartoons:0,batman:0}
 ];
-let dtCriterion = "gini";
-let dtCandidates = [];
+let dtCriterion="gini",dtRoot=null,dtEvents=[],dtTimer=null;
 
 function dtGini(labels){
-  if(!labels.length) return 0;
-  const yes = labels.reduce((s,v)=>s+v,0);
-  const p1 = yes/labels.length, p0 = 1-p1;
+  if(!labels.length)return 0;
+  const yes=labels.reduce((s,v)=>s+v,0),p1=yes/labels.length,p0=1-p1;
   return 1-p1*p1-p0*p0;
 }
 function dtEntropy(labels){
-  if(!labels.length) return 0;
-  const yes = labels.reduce((s,v)=>s+v,0);
-  const p1 = yes/labels.length, p0 = 1-p1;
-  const h = p => p===0 ? 0 : -p*Math.log2(p);
+  if(!labels.length)return 0;
+  const yes=labels.reduce((s,v)=>s+v,0),p1=yes/labels.length,p0=1-p1;
+  const h=p=>p===0?0:-p*Math.log2(p);
   return h(p1)+h(p0);
 }
-function dtImpurity(labels){ return dtCriterion==="gini" ? dtGini(labels) : dtEntropy(labels); }
-function dtCriterionName(){ return dtCriterion==="gini" ? "Gini impurity" : "Entropy"; }
-function dtGainName(){ return dtCriterion==="gini" ? "Gini reduction" : "Information gain"; }
-function dtSplitLabel(q){ return q.key==="age" ? "Age ≤ "+fmt(q.th,1) : q.name+" = 0 vs 1"; }
-
-function buildDtCandidates(){
-  dtCandidates = [];
-  const parent = dtImpurity(dtRows.map(r=>r.batman));
-  const ages = [...new Set(dtRows.map(r=>r.age))].sort((a,b)=>a-b);
-
-  for(let i=0;i<ages.length-1;i++){
-    const th = (ages[i]+ages[i+1])/2;
-    const left = dtRows.filter(r=>r.age<=th);
-    const right = dtRows.filter(r=>r.age>th);
-    const il = dtImpurity(left.map(r=>r.batman));
-    const ir = dtImpurity(right.map(r=>r.batman));
-    const weighted = (left.length/dtRows.length)*il + (right.length/dtRows.length)*ir;
-    dtCandidates.push({key:"age",name:"Age",th,left,right,il,ir,weighted,gain:parent-weighted});
-  }
-
-  [["movies","Loves Movies"],["cartoons","Loves Cartoons"]].forEach(pair=>{
-    const key = pair[0], name = pair[1];
-    const left = dtRows.filter(r=>r[key]===0);
-    const right = dtRows.filter(r=>r[key]===1);
-    const il = dtImpurity(left.map(r=>r.batman));
-    const ir = dtImpurity(right.map(r=>r.batman));
-    const weighted = (left.length/dtRows.length)*il + (right.length/dtRows.length)*ir;
-    dtCandidates.push({key,name,th:0.5,left,right,il,ir,weighted,gain:parent-weighted});
-  });
-
-  dtCandidates.sort((a,b)=>b.gain-a.gain);
-  $("#dtCandidate").innerHTML = dtCandidates.map((q,i)=>'<option value="'+i+'">'+dtSplitLabel(q)+'</option>').join("");
-}
-
+function dtImpurity(labels){return dtCriterion==="gini"?dtGini(labels):dtEntropy(labels)}
+function dtCriterionName(){return dtCriterion==="gini"?"Gini impurity":"Entropy"}
+function dtGainName(){return dtCriterion==="gini"?"Gini reduction":"Information gain"}
 function dtCounts(rows){
-  const yes = rows.filter(r=>r.batman===1).length;
+  const yes=rows.filter(r=>r.batman===1).length;
   return {n:rows.length,yes,no:rows.length-yes,majority:yes>=rows.length-yes?1:0};
 }
-
+function dtSplitLabel(q){
+  if(q.key==="age")return "Age ≤ "+fmt(q.th,1);
+  return q.name+" = 0 ?";
+}
 function dtFormulaFor(labels){
-  const yes = labels.reduce((s,v)=>s+v,0), no = labels.length-yes, n = labels.length;
-  if(dtCriterion==="gini") return "1 − ("+yes+"/"+n+")² − ("+no+"/"+n+")²";
-  const a = yes===0 ? "0" : "−("+yes+"/"+n+")log₂("+yes+"/"+n+")";
-  const bb = no===0 ? "0" : "−("+no+"/"+n+")log₂("+no+"/"+n+")";
-  return a+" + "+bb;
+  const yes=labels.reduce((s,v)=>s+v,0),no=labels.length-yes,n=labels.length;
+  if(dtCriterion==="gini")return "1 − ("+yes+"/"+n+")² − ("+no+"/"+n+")²";
+  const a=yes===0?"0":"−("+yes+"/"+n+")log₂("+yes+"/"+n+")";
+  const b=no===0?"0":"−("+no+"/"+n+")log₂("+no+"/"+n+")";
+  return a+" + "+b;
 }
-
-function drawDt(q){
-  const cv=$("#dtCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=54;
-  ctx.clearRect(0,0,W,H);
-  ctx.strokeStyle="#e3e8f0";ctx.lineWidth=1;
-  const yNo=H-p-55, yYes=p+55;
-  ctx.beginPath();ctx.moveTo(p,yNo);ctx.lineTo(W-p,yNo);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(p,yYes);ctx.lineTo(W-p,yYes);ctx.stroke();
-  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";
-  ctx.fillText("Batman = 0 (No)",8,yNo+5);
-  ctx.fillText("Batman = 1 (Yes)",8,yYes+5);
-
-  let sx,label;
-  if(q.key==="age"){
-    sx = v => p+((v-4)/(47-4))*(W-2*p);
-    label = "Age";
-  }else{
-    sx = v => p+110+v*(W-2*p-220);
-    label = q.name+" (0 / 1)";
+function dtCandidatesFor(rows){
+  const out=[],parent=dtImpurity(rows.map(r=>r.batman)),ages=[...new Set(rows.map(r=>r.age))].sort((a,b)=>a-b);
+  for(let i=0;i<ages.length-1;i++){
+    const th=(ages[i]+ages[i+1])/2,left=rows.filter(r=>r.age<=th),right=rows.filter(r=>r.age>th);
+    const il=dtImpurity(left.map(r=>r.batman)),ir=dtImpurity(right.map(r=>r.batman));
+    const weighted=(left.length/rows.length)*il+(right.length/rows.length)*ir;
+    out.push({key:"age",name:"Age",th,left,right,il,ir,weighted,gain:parent-weighted});
   }
-
-  dtRows.forEach((r,i)=>{
-    const xv = q.key==="age" ? r.age : r[q.key];
-    const yv = r.batman ? yYes : yNo;
-    const jitter = ((i%3)-1)*7;
-    ctx.fillStyle = r.batman ? "#15803d" : "#b42318";
-    ctx.beginPath();ctx.arc(sx(xv),yv+jitter,7,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="#42516a";ctx.font="10px sans-serif";
-    ctx.fillText(String(r.id),sx(xv)+8,yv+jitter-8);
+  [["movies","Loves Movies"],["cartoons","Loves Cartoons"]].forEach(pair=>{
+    const key=pair[0],name=pair[1],vals=[...new Set(rows.map(r=>r[key]))];
+    if(vals.length<2)return;
+    const left=rows.filter(r=>r[key]===0),right=rows.filter(r=>r[key]===1);
+    const il=dtImpurity(left.map(r=>r.batman)),ir=dtImpurity(right.map(r=>r.batman));
+    const weighted=(left.length/rows.length)*il+(right.length/rows.length)*ir;
+    out.push({key,name,th:.5,left,right,il,ir,weighted,gain:parent-weighted});
   });
-
-  ctx.strokeStyle="#2563eb";ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();
-  const bx = q.key==="age" ? sx(q.th) : (sx(0)+sx(1))/2;
-  ctx.moveTo(bx,p);ctx.lineTo(bx,H-p);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";
-  ctx.fillText(label,W/2-40,H-16);
+  out.sort((a,b)=>b.gain-a.gain || a.name.localeCompare(b.name) || a.th-b.th);
+  return out;
 }
+function buildFullDt(){
+  let nextId=1;
+  dtRoot={id:nextId++,rows:dtRows.slice(),depth:0,splitStep:null,left:null,right:null};
+  dtEvents=[];
+  const queue=[dtRoot];
+  while(queue.length){
+    const node=queue.shift(),labels=node.rows.map(r=>r.batman),imp=dtImpurity(labels);
+    node.impurity=imp;node.counts=dtCounts(node.rows);
+    if(imp<1e-12)continue;
+    const candidates=dtCandidatesFor(node.rows);
+    if(!candidates.length || candidates[0].gain<=1e-12)continue;
+    const best=candidates[0];
+    node.best=best;node.candidates=candidates;node.splitStep=dtEvents.length+1;
+    node.left={id:nextId++,rows:best.left,depth:node.depth+1,splitStep:null,left:null,right:null};
+    node.right={id:nextId++,rows:best.right,depth:node.depth+1,splitStep:null,left:null,right:null};
+    node.left.impurity=dtImpurity(node.left.rows.map(r=>r.batman));node.left.counts=dtCounts(node.left.rows);
+    node.right.impurity=dtImpurity(node.right.rows.map(r=>r.batman));node.right.counts=dtCounts(node.right.rows);
+    dtEvents.push({step:node.splitStep,node,best,candidates});
+    queue.push(node.left,node.right);
+  }
+  $("#dtBuildStep").max=dtEvents.length;
+}
+function dtNodeBox(node,step){
+  const c=node.counts||dtCounts(node.rows),imp=node.impurity??dtImpurity(node.rows.map(r=>r.batman));
+  const pure=imp<1e-12;
+  const splitVisible=node.splitStep!==null && node.splitStep<=step;
+  let cls="pending",title="Pending node";
+  if(pure){cls=c.majority?"leaf-yes":"leaf-no";title=c.majority?"Leaf: Batman = Yes (1)":"Leaf: Batman = No (0)";}
+  else if(splitVisible){cls="split";title=dtSplitLabel(node.best);}
+  else if(node.splitStep===null){cls=c.majority?"leaf-yes":"leaf-no";title="Leaf: "+(c.majority?"Batman = Yes (1)":"Batman = No (0)");}
+  const rows=node.rows.map(r=>r.id).join(", ");
+  return '<div class="dt-tree-node '+cls+'"><b>'+title+'</b><br>Node '+node.id+' · n='+c.n+'<br>Yes='+c.yes+', No='+c.no+'<br>'+dtCriterionName()+'='+fmt(imp)+'<br><span class="tiny">Rows: '+rows+'</span></div>';
+}
+function dtTreeHtml(node,step){
+  const visible=node.splitStep!==null && node.splitStep<=step;
+  let html='<div class="dt-subtree">'+dtNodeBox(node,step);
+  if(visible){
+    const leftLabel=node.best.key==="age"?"Yes (≤)":"0";
+    const rightLabel=node.best.key==="age"?"No (>)":"1";
+    html+='<div class="dt-children"><div class="dt-branch"><div class="dt-edge-label">'+leftLabel+'</div>'+dtTreeHtml(node.left,step)+'</div><div class="dt-branch"><div class="dt-edge-label">'+rightLabel+'</div>'+dtTreeHtml(node.right,step)+'</div></div>';
+  }
+  return html+'</div>';
+}
+function dtCurrentEvent(step){
+  if(step===0)return {node:dtRoot,best:dtRoot.best,candidates:dtRoot.candidates||dtCandidatesFor(dtRoot.rows),preview:true};
+  return dtEvents[step-1];
+}
+function renderDtStep(){
+  const step=Number($("#dtBuildStep").value),total=dtEvents.length,ev=dtCurrentEvent(step),node=ev.node,best=ev.best,candidates=ev.candidates||dtCandidatesFor(node.rows),counts=dtCounts(node.rows),parent=dtImpurity(node.rows.map(r=>r.batman));
+  $("#dtStepLabel").textContent=step+" / "+total;
+  $("#dtNodeLabel").textContent=step===0?"Root preview":"Node "+node.id;
+  $("#dtCriterionLabel").textContent=dtCriterionName();
+  $("#dtStatusLabel").textContent=step===total?"Complete":(step===0?"Ready to split":"Building");
+  $("#dtPrevStep").disabled=step<=0;$("#dtNextStep").disabled=step>=total;
 
+  const activeIds=new Set(node.rows.map(r=>r.id));
+  $("#dtData").innerHTML='<table class="tbl"><thead><tr><th>Row</th><th>Age</th><th>Loves Movies</th><th>Loves Cartoons</th><th>Loves Batman (Y)</th></tr></thead><tbody>'+dtRows.map(r=>'<tr class="'+(activeIds.has(r.id)?"selected":"")+'"><td>'+r.id+'</td><td>'+r.age+'</td><td>'+r.movies+'</td><td>'+r.cartoons+'</td><td><b>'+r.batman+'</b></td></tr>').join("")+'</tbody></table>';
+
+  $("#dtTreeBuild").innerHTML=dtTreeHtml(dtRoot,step);
+  $("#dtFinalTreeView").innerHTML=dtTreeHtml(dtRoot,total);
+
+  const lc=dtCounts(best.left),rc=dtCounts(best.right),leftFormula=dtFormulaFor(best.left.map(r=>r.batman)),rightFormula=dtFormulaFor(best.right.map(r=>r.batman)),parentFormula=dtFormulaFor(node.rows.map(r=>r.batman));
+  $("#dtMath").innerHTML='<div class="kicker">'+(step===0?"Preview the first split":"Build step "+step+" of "+total)+'</div><h3>Choose the best split for Node '+node.id+'</h3><div class="math">Rows in this node: ['+node.rows.map(r=>r.id).join(", ")+']<br>Batman Yes='+counts.yes+', No='+counts.no+'<br><br>'+dtCriterionName()+'(parent) = '+parentFormula+' = <b>'+fmt(parent)+'</b><br><br><b>Best candidate: '+dtSplitLabel(best)+'</b><br><br>Left child: n='+lc.n+', Yes='+lc.yes+', No='+lc.no+'<br>'+dtCriterionName()+'(L) = '+leftFormula+' = <b>'+fmt(best.il)+'</b><br><br>Right child: n='+rc.n+', Yes='+rc.yes+', No='+rc.no+'<br>'+dtCriterionName()+'(R) = '+rightFormula+' = <b>'+fmt(best.ir)+'</b><br><br>Weighted child impurity = ('+lc.n+'/'+counts.n+')×'+fmt(best.il)+' + ('+rc.n+'/'+counts.n+')×'+fmt(best.ir)+' = <b>'+fmt(best.weighted)+'</b><br><br>'+dtGainName()+' = '+fmt(parent)+' − '+fmt(best.weighted)+' = <b>'+fmt(best.gain)+'</b></div>'+(step===total?'<div class="callout green" style="margin-top:10px"><b>Tree complete.</b> All remaining leaves are pure for this training dataset.</div>':'');
+  $("#dtRanking").innerHTML='<table class="tbl"><thead><tr><th>Rank</th><th>Candidate</th><th>Left impurity</th><th>Right impurity</th><th>Weighted impurity</th><th>'+dtGainName()+'</th></tr></thead><tbody>'+candidates.map((q,i)=>'<tr class="'+(i===0?"selected":"")+'"><td>'+(i+1)+'</td><td>'+dtSplitLabel(q)+'</td><td>'+fmt(q.il)+'</td><td>'+fmt(q.ir)+'</td><td>'+fmt(q.weighted)+'</td><td><b>'+fmt(q.gain)+'</b></td></tr>').join("")+'</tbody></table>';
+}
+function stopDtBuild(){if(dtTimer){clearInterval(dtTimer);dtTimer=null}$("#dtAutoBuild").textContent="▶ Build tree"}
 function setDtCriterion(which){
-  dtCriterion = which;
-  $("#dtGiniBtn").style.background = which==="gini" ? "var(--blue)" : "white";
-  $("#dtGiniBtn").style.color = which==="gini" ? "white" : "var(--ink)";
-  $("#dtEntropyBtn").style.background = which==="entropy" ? "var(--blue)" : "white";
-  $("#dtEntropyBtn").style.color = which==="entropy" ? "white" : "var(--ink)";
-  $("#dtFormula").innerHTML = which==="gini"
-    ? "<b>Gini = 1 − Σpₖ²</b><br>Split gain = Gini(parent) − weighted Gini(children)."
-    : "<b>Entropy = −Σpₖlog₂(pₖ)</b><br>Information Gain = Entropy(parent) − weighted Entropy(children).";
-  buildDtCandidates();
-  $("#dtCandidate").value=0;
-  renderDt();
+  stopDtBuild();dtCriterion=which;
+  $("#dtGiniBtn").style.background=which==="gini"?"var(--blue)":"white";$("#dtGiniBtn").style.color=which==="gini"?"white":"var(--ink)";
+  $("#dtEntropyBtn").style.background=which==="entropy"?"var(--blue)":"white";$("#dtEntropyBtn").style.color=which==="entropy"?"white":"var(--ink)";
+  $("#dtFormula").innerHTML=which==="gini"?"<b>Gini = 1 − Σpₖ²</b><br>Choose the split with the largest Gini reduction.":"<b>Entropy = −Σpₖlog₂(pₖ)</b><br>Choose the split with the largest Information Gain.";
+  buildFullDt();$("#dtBuildStep").value=0;renderDtStep();
 }
-
-function renderDt(){
-  const idx = Number($("#dtCandidate").value)||0;
-  const q = dtCandidates[idx];
-  const parentLabels = dtRows.map(r=>r.batman);
-  const parent = dtImpurity(parentLabels);
-  const lc = dtCounts(q.left), rc = dtCounts(q.right);
-
-  drawDt(q);
-
-  $("#dtData").innerHTML =
-    '<table class="tbl"><thead><tr><th>Row</th><th>Age</th><th>Loves Movies</th><th>Loves Cartoons</th><th>Loves Batman (Y)</th></tr></thead><tbody>'+
-    dtRows.map(r=>'<tr><td>'+r.id+'</td><td>'+r.age+'</td><td>'+r.movies+'</td><td>'+r.cartoons+'</td><td><b>'+r.batman+'</b></td></tr>').join("")+
-    '</tbody></table>';
-
-  $("#dtSplitSummary").innerHTML =
-    '<div class="metric-row"><div class="metric"><small>Criterion</small><strong>'+dtCriterionName()+'</strong></div>'+
-    '<div class="metric"><small>Parent impurity</small><strong>'+fmt(parent)+'</strong></div>'+
-    '<div class="metric"><small>Weighted child impurity</small><strong>'+fmt(q.weighted)+'</strong></div>'+
-    '<div class="metric"><small>'+dtGainName()+'</small><strong>'+fmt(q.gain)+'</strong></div></div>'+
-    '<div class="callout" style="margin-top:10px"><b>Selected split:</b> '+dtSplitLabel(q)+'</div>';
-
-  const parentFormula=dtFormulaFor(parentLabels), leftFormula=dtFormulaFor(q.left.map(r=>r.batman)), rightFormula=dtFormulaFor(q.right.map(r=>r.batman));
-
-  $("#dtMath").innerHTML =
-    '<div class="kicker">'+dtCriterionName()+' calculation</div><h3>'+dtSplitLabel(q)+'</h3>'+
-    '<div class="math">Parent: n=12, Batman Yes=9, No=3<br>'+dtCriterionName()+'(parent) = '+parentFormula+' = <b>'+fmt(parent)+'</b><br><br>'+
-    '<b>Left branch</b>: n='+lc.n+', Yes='+lc.yes+', No='+lc.no+'<br>'+dtCriterionName()+'(L) = '+leftFormula+' = <b>'+fmt(q.il)+'</b><br><br>'+
-    '<b>Right branch</b>: n='+rc.n+', Yes='+rc.yes+', No='+rc.no+'<br>'+dtCriterionName()+'(R) = '+rightFormula+' = <b>'+fmt(q.ir)+'</b><br><br>'+
-    'Weighted child impurity = ('+lc.n+'/12)×'+fmt(q.il)+' + ('+rc.n+'/12)×'+fmt(q.ir)+' = <b>'+fmt(q.weighted)+'</b><br><br>'+
-    dtGainName()+' = '+fmt(parent)+' − '+fmt(q.weighted)+' = <b>'+fmt(q.gain)+'</b></div>';
-
-  $("#dtRanking").innerHTML =
-    '<table class="tbl"><thead><tr><th>Rank</th><th>Candidate split</th><th>Left impurity</th><th>Right impurity</th><th>Weighted impurity</th><th>'+dtGainName()+'</th></tr></thead><tbody>'+
-    dtCandidates.map((x,i)=>'<tr class="'+(i===idx?"selected":"")+'"><td>'+(i+1)+'</td><td>'+dtSplitLabel(x)+'</td><td>'+fmt(x.il)+'</td><td>'+fmt(x.ir)+'</td><td>'+fmt(x.weighted)+'</td><td><b>'+fmt(x.gain)+'</b></td></tr>').join("")+
-    '</tbody></table>';
-
-  const best=dtCandidates[0], bl=dtCounts(best.left), br=dtCounts(best.right);
-  const leftClass = bl.majority ? "Loves Batman = Yes (1)" : "Loves Batman = No (0)";
-  const rightClass = br.majority ? "Loves Batman = Yes (1)" : "Loves Batman = No (0)";
-
-  $("#dtTree").innerHTML =
-    '<div style="text-align:center"><div class="callout" style="display:inline-block;min-width:280px"><b>'+dtSplitLabel(best)+' ?</b><br>'+dtGainName()+' = '+fmt(best.gain)+'</div>'+
-    '<div style="display:flex;justify-content:center;gap:60px;margin-top:18px;flex-wrap:wrap">'+
-    '<div class="callout green"><b>LEFT / TRUE-or-0 branch</b><br>'+bl.n+' samples: Yes='+bl.yes+', No='+bl.no+'<br>Prediction: <b>'+leftClass+'</b><br>'+dtCriterionName()+'='+fmt(best.il)+'</div>'+
-    '<div class="callout orange"><b>RIGHT / FALSE-or-1 branch</b><br>'+br.n+' samples: Yes='+br.yes+', No='+br.no+'<br>Prediction: <b>'+rightClass+'</b><br>'+dtCriterionName()+'='+fmt(best.ir)+'</div></div></div>';
-}
-
-$("#dtCandidate").addEventListener("change",renderDt);
-$("#dtBest").addEventListener("click",()=>{$("#dtCandidate").value=0;renderDt();});
+$("#dtBuildStep").addEventListener("input",()=>{stopDtBuild();renderDtStep()});
+$("#dtPrevStep").addEventListener("click",()=>{stopDtBuild();$("#dtBuildStep").value=clamp(Number($("#dtBuildStep").value)-1,0,dtEvents.length);renderDtStep()});
+$("#dtNextStep").addEventListener("click",()=>{stopDtBuild();$("#dtBuildStep").value=clamp(Number($("#dtBuildStep").value)+1,0,dtEvents.length);renderDtStep()});
+$("#dtFinalTree").addEventListener("click",()=>{stopDtBuild();$("#dtBuildStep").value=dtEvents.length;renderDtStep();$("#dtFinalTreeView").scrollIntoView({behavior:"smooth",block:"center"})});
+$("#dtAutoBuild").addEventListener("click",()=>{if(dtTimer)return;let s=Number($("#dtBuildStep").value);if(s>=dtEvents.length){s=0;$("#dtBuildStep").value=0;renderDtStep()}$("#dtAutoBuild").textContent="Building…";dtTimer=setInterval(()=>{s++;$("#dtBuildStep").value=s;renderDtStep();if(s>=dtEvents.length)stopDtBuild()},1250)});
+$("#dtPauseBuild").addEventListener("click",stopDtBuild);
 $("#dtGiniBtn").addEventListener("click",()=>setDtCriterion("gini"));
 $("#dtEntropyBtn").addEventListener("click",()=>setDtCriterion("entropy"));
 setDtCriterion("gini");
