@@ -25,7 +25,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <main class="app">
 <header class="hero"><div><h1>Deep Learning Visual Lab</h1><p>Interactive classroom demonstrator for <b>Linear Regression</b>, <b>Decision Trees</b>, <b>SVM</b>, <b>ANN</b>, <b>CNN</b>, <b>RNN</b>, <b>RGB CNN</b>, and <b>LSTM</b>. The purpose is not to hide training behind a library call: every multiplication, addition, activation, loss term, gradient, and weight update is shown explicitly.</p></div><div class="badge">Teaching mode · classifiers fixed · build 2026-09-21b</div></header>
 <nav class="tabs" aria-label="Lab sections">
-<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button><button class="tab" data-tab="linreg">6 · Linear Classifier</button><button class="tab" data-tab="dtree">7 · Decision Tree</button><button class="tab" data-tab="svm">8 · SVM</button>
+<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button><button class="tab" data-tab="linreg">6 · Linear Classifier</button><button class="tab" data-tab="dtree">7 · Decision Tree</button><button class="tab" data-tab="svm">8 · SVM</button><button class="tab" data-tab="polyreg">9 · Polynomial Regression</button>
 </nav>
 
 <section id="ann" class="panel active">
@@ -220,6 +220,60 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 </div>
 </div>
 </section>
+
+<section id="polyreg" class="panel">
+<div class="grid">
+<aside class="card">
+<h2>Polynomial Regression</h2>
+<p class="hint">Regression task: predict <b>building energy use</b> from <b>outdoor temperature</b>. The relationship is intentionally curved.</p>
+<div class="callout">
+<b>Polynomial model</b><br>
+Ŷ = β₀ + β₁x + β₂x² + … + β<sub>d</sub>x<sup>d</sup><br><br>
+Degree 1 → straight line<br>
+Degree 2 → parabola<br>
+Higher degree → more flexible curve
+</div>
+<label class="field" style="margin-top:12px">Polynomial degree
+<select id="prDegree">
+<option value="1">Degree 1</option>
+<option value="2" selected>Degree 2</option>
+<option value="3">Degree 3</option>
+<option value="4">Degree 4</option>
+<option value="5">Degree 5</option>
+</select>
+</label>
+<label class="field" style="margin-top:10px">Inspect temperature x
+<input id="prTestX" type="range" min="10" max="32" step="1" value="24">
+</label>
+<div class="status">Selected x = <b id="prTestLabel">24</b>°C</div>
+</aside>
+
+<div class="stack">
+<div class="card"><div class="metric-row">
+<div class="metric"><small>Degree</small><strong id="prDegreeLabel">2</strong></div>
+<div class="metric"><small>MSE</small><strong id="prMse">–</strong></div>
+<div class="metric"><small>Selected prediction Ŷ</small><strong id="prPred">–</strong></div>
+<div class="metric"><small>Number of coefficients</small><strong id="prCoeffCount">3</strong></div>
+</div></div>
+
+<div class="card"><div class="two">
+<div><h3>Observed data + fitted polynomial</h3><canvas id="prCanvas" width="680" height="420" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">Blue curve = fitted polynomial. Vertical gaps from points to curve are residuals.</p></div>
+<div><h3>How the feature space changes</h3><div id="prFeatureMath" class="math"></div></div>
+</div></div>
+
+<div class="card"><h3>12-row regression dataset</h3><div id="prData" class="tablewrap"></div></div>
+
+<div class="card"><h3>Normal-equation working</h3><div id="prNormalMath" class="math"></div></div>
+
+<div class="card"><h3>Fitted equation</h3><div id="prEquation" class="math"></div></div>
+
+<div class="card"><h3>Prediction at the selected temperature</h3><div id="prPredictMath" class="math"></div></div>
+
+<div class="card"><h3>Residuals</h3><div id="prResiduals" class="tablewrap"></div></div>
+</div>
+</div>
+</section>
+
 <footer class="footer">Deep Learning Visual Lab · ANN · CNN · RNN · RGB CNN · LSTM · Static browser application</footer>
 </main>
 <script>
@@ -954,6 +1008,101 @@ $("#svmClassify").addEventListener("click",()=>{$("#svmBuildStep").value=6;rende
 $("#svmTestX1").addEventListener("input",renderSvm);$("#svmTestX2").addEventListener("input",renderSvm);
 $("#svmSupportSelect").addEventListener("change",renderSvmKernelMath);
 resetSvmForKernel();
+
+
+// Polynomial Regression
+const prRows=[
+ {x:10,y:118},{x:12,y:103},{x:14,y:91},{x:16,y:82},
+ {x:18,y:75},{x:20,y:70},{x:22,y:68},{x:24,y:70},
+ {x:26,y:76},{x:28,y:86},{x:30,y:101},{x:32,y:119}
+];
+
+function prSolve(A,b){
+  const n=A.length,M=A.map((row,i)=>row.slice().concat([b[i]]));
+  for(let k=0;k<n;k++){
+    let pivot=k;
+    for(let i=k+1;i<n;i++)if(Math.abs(M[i][k])>Math.abs(M[pivot][k]))pivot=i;
+    [M[k],M[pivot]]=[M[pivot],M[k]];
+    const p=M[k][k];
+    if(Math.abs(p)<1e-12)continue;
+    for(let j=k;j<=n;j++)M[k][j]/=p;
+    for(let i=0;i<n;i++){
+      if(i===k)continue;
+      const f=M[i][k];
+      for(let j=k;j<=n;j++)M[i][j]-=f*M[k][j];
+    }
+  }
+  return M.map(r=>r[n]);
+}
+function prFit(degree){
+  const xmean=prRows.reduce((s,r)=>s+r.x,0)/prRows.length;
+  const xscale=11;
+  const Z=prRows.map(r=>(r.x-xmean)/xscale);
+  const X=Z.map(z=>Array.from({length:degree+1},(_,j)=>Math.pow(z,j)));
+  const y=prRows.map(r=>r.y),p=degree+1;
+  const XtX=Array.from({length:p},()=>Array(p).fill(0));
+  const Xty=Array(p).fill(0);
+  for(let i=0;i<X.length;i++){
+    for(let a=0;a<p;a++){
+      Xty[a]+=X[i][a]*y[i];
+      for(let b=0;b<p;b++)XtX[a][b]+=X[i][a]*X[i][b];
+    }
+  }
+  const beta=prSolve(XtX,Xty);
+  const predict=x=>{
+    const z=(x-xmean)/xscale;
+    return beta.reduce((s,v,j)=>s+v*Math.pow(z,j),0);
+  };
+  const preds=prRows.map(r=>predict(r.x));
+  const res=prRows.map((r,i)=>r.y-preds[i]);
+  const mse=res.reduce((s,v)=>s+v*v,0)/res.length;
+  return {degree,xmean,xscale,X,XtX,Xty,beta,predict,preds,res,mse};
+}
+function prDraw(fit){
+  const cv=$("#prCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=52;
+  const sx=x=>p+((x-9)/(33-9))*(W-2*p),sy=y=>H-p-((y-60)/(125-60))*(H-2*p);
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle="#e3e8f0";ctx.lineWidth=1;
+  for(let x=10;x<=32;x+=2){ctx.beginPath();ctx.moveTo(sx(x),p);ctx.lineTo(sx(x),H-p);ctx.stroke();}
+  for(let y=60;y<=120;y+=10){ctx.beginPath();ctx.moveTo(p,sy(y));ctx.lineTo(W-p,sy(y));ctx.stroke();}
+  prRows.forEach((r,i)=>{
+    ctx.strokeStyle="#c2410c";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sx(r.x),sy(r.y));ctx.lineTo(sx(r.x),sy(fit.preds[i]));ctx.stroke();
+  });
+  ctx.strokeStyle="#2563eb";ctx.lineWidth=4;ctx.beginPath();
+  for(let x=10;x<=32;x+=.15){const y=fit.predict(x);if(x===10)ctx.moveTo(sx(x),sy(y));else ctx.lineTo(sx(x),sy(y));}
+  ctx.stroke();
+  prRows.forEach(r=>{ctx.fillStyle="#7c3aed";ctx.beginPath();ctx.arc(sx(r.x),sy(r.y),6,0,Math.PI*2);ctx.fill();});
+  const tx=Number($("#prTestX").value),ty=fit.predict(tx);
+  ctx.fillStyle="#15803d";ctx.beginPath();ctx.arc(sx(tx),sy(ty),8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";ctx.fillText("Temperature (°C) →",W-150,H-15);ctx.save();ctx.translate(18,H/2+60);ctx.rotate(-Math.PI/2);ctx.fillText("Energy use",0,0);ctx.restore();
+}
+function prTerm(beta,j){
+  if(j===0)return fmt(beta,4);
+  const sign=beta>=0?" + ":" − ";
+  return sign+fmt(Math.abs(beta),4)+"z"+(j===1?"":"^"+j);
+}
+function renderPr(){
+  const degree=Number($("#prDegree").value),fit=prFit(degree),tx=Number($("#prTestX").value),z=(tx-fit.xmean)/fit.xscale,pred=fit.predict(tx);
+  $("#prDegreeLabel").textContent=degree;$("#prMse").textContent=fmt(fit.mse,4);$("#prPred").textContent=fmt(pred,3);$("#prCoeffCount").textContent=degree+1;$("#prTestLabel").textContent=tx;
+  prDraw(fit);
+
+  $("#prData").innerHTML='<table class="tbl"><thead><tr><th>Row</th><th>Temperature x (°C)</th><th>Actual Y: Energy use</th></tr></thead><tbody>'+prRows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.x+'</td><td>'+r.y+'</td></tr>').join("")+'</tbody></table>';
+
+  const featureNames=Array.from({length:degree+1},(_,j)=>j===0?"1":(j===1?"z":"z^"+j));
+  $("#prFeatureMath").innerHTML='To improve numerical stability, first center/scale x:<br><br>z = (x − '+fmt(fit.xmean)+') / '+fmt(fit.xscale)+'<br><br>Degree '+degree+' transforms one input into:<br><b>['+featureNames.join(", ")+']</b><br><br>For x='+tx+': z='+fmt(z,4)+'<br>Feature vector = [1'+Array.from({length:degree},(_,j)=>", "+fmt(Math.pow(z,j+1),4)).join("")+']';
+
+  const sampleRows=fit.X.slice(0,4).map((row,i)=>'row '+(i+1)+': ['+row.map(v=>fmt(v,4)).join(", ")+']').join("<br>");
+  $("#prNormalMath").innerHTML='Design matrix X contains one column per polynomial term.<br><br>First rows of X:<br>'+sampleRows+'<br><br>Closed-form least-squares solution:<br><b>β = (XᵀX)<sup>−1</sup>XᵀY</b><br><br>Solving the normal equations gives:<br>β = [<b>'+fit.beta.map(v=>fmt(v,6)).join(", ")+'</b>]';
+
+  $("#prEquation").innerHTML='Using z=(x−'+fmt(fit.xmean)+')/'+fmt(fit.xscale)+':<br><br><b>Ŷ = '+fit.beta.map((b,j)=>j===0?fmt(b,4):prTerm(b,j)).join("")+'</b><br><br>MSE = (1/n)Σ(Y−Ŷ)² = <b>'+fmt(fit.mse,6)+'</b>';
+
+  const terms=fit.beta.map((b,j)=>({b,pow:Math.pow(z,j),value:b*Math.pow(z,j)}));
+  $("#prPredictMath").innerHTML='x = '+tx+'°C → z = '+fmt(z,6)+'<br><br>Ŷ = '+terms.map((t,j)=>'('+fmt(t.b,5)+'×'+fmt(t.pow,5)+')').join(" + ")+'<br>= '+terms.map(t=>fmt(t.value,5)).join(" + ")+'<br>= <b>'+fmt(pred,5)+'</b>';
+
+  $("#prResiduals").innerHTML='<table class="tbl"><thead><tr><th>x</th><th>Actual Y</th><th>Predicted Ŷ</th><th>Residual Y−Ŷ</th><th>Residual²</th></tr></thead><tbody>'+prRows.map((r,i)=>'<tr><td>'+r.x+'</td><td>'+r.y+'</td><td>'+fmt(fit.preds[i],3)+'</td><td>'+fmt(fit.res[i],3)+'</td><td>'+fmt(fit.res[i]*fit.res[i],4)+'</td></tr>').join("")+'</tbody></table>';
+}
+$("#prDegree").addEventListener("change",renderPr);
+$("#prTestX").addEventListener("input",renderPr);
+renderPr();
 
 })();
 </script>
