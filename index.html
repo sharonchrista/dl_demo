@@ -152,45 +152,65 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 </section>
 
 <section id="svm" class="panel">
-<div class="card"><h2>SVM Classifier — Full Worked Example + Support Vectors</h2><p class="lead">This tab uses the <b>6 training vectors and 2 test vectors from the supplied SVM PDF</b>. The model is trained on all three features ((x_1,x_2,x_3)). Choose Linear, Polynomial, or RBF to see how the support vectors and decision boundary change.</p>
+<div class="card">
+<h2>SVM Classifier — Building the Model Step by Step</h2>
+<p class="lead">Choose a kernel. The demo switches to a dataset designed to show why that kernel is useful, then builds the SVM from training points to kernel matrix, dual coefficients, support vectors, decision function, boundary, margins, and test classification.</p>
 <div class="three" style="margin-top:12px">
-<div class="callout"><b>Linear</b><br>K(x,z)=xᵀz</div>
-<div class="callout orange"><b>Polynomial</b><br>K(x,z)=(γxᵀz+r)<sup>d</sup></div>
-<div class="callout green"><b>RBF</b><br>K(x,z)=exp(−γ‖x−z‖²)</div>
-</div></div>
+<div class="callout"><b>Linear</b><br>Straight-line separation<br>K(x,z)=xᵀz</div>
+<div class="callout orange"><b>Polynomial</b><br>XOR-style nonlinear separation<br>K(x,z)=(γxᵀz+r)<sup>2</sup></div>
+<div class="callout green"><b>RBF</b><br>Center-vs-ring separation<br>K(x,z)=exp(−γ‖x−z‖²)</div>
+</div>
+</div>
 
 <div class="grid" style="margin-top:14px">
 <aside class="card">
-<label class="field">Kernel<select id="svmKernelChoice"><option value="linear">Linear</option><option value="poly">Polynomial (degree 2)</option><option value="rbf">RBF / Gaussian</option></select></label>
-<label class="field" style="margin-top:10px">PDF test vector<select id="svmPdfTest"><option value="0">x′₁ = [2, 4, 3]</option><option value="1">x′₂ = [1, 1, 1]</option></select></label>
-<label class="field" style="margin-top:10px">Decision-slice x₃<input id="svmSliceX3" type="range" min="0" max="3" step="0.1" value="1.5"></label>
-<div class="status">Current slice: x₃ = <b id="svmSliceLabel">1.5</b></div>
-<div class="slider-row"><span>1</span><input id="svmWalkStep" type="range" min="1" max="5" value="1"><span>5</span></div>
-<div class="controls"><button id="svmWalkPrev" class="secondary">← Previous</button><button id="svmWalkNext" class="secondary">Next →</button><button id="svmWalkAuto" class="secondary">▶ Walkthrough</button><button id="svmWalkPause" class="secondary">⏸ Pause</button></div>
-<div class="callout" style="margin-top:12px"><b>Five teaching stages</b><br>1. Plot training data<br>2. Standardize features<br>3. Reveal support vectors<br>4. Draw decision boundary<br>5. Show margins + test classification</div>
+<label class="field">Kernel
+<select id="svmKernelChoice">
+<option value="linear">Linear</option>
+<option value="poly">Polynomial degree 2</option>
+<option value="rbf">RBF / Gaussian</option>
+</select></label>
+
+<div id="svmDatasetWhy" class="callout" style="margin-top:12px"></div>
+
+<div class="slider-row"><span>1</span><input id="svmBuildStep" type="range" min="1" max="6" value="1"><span>6</span></div>
+<div class="controls">
+<button id="svmPrevStep" class="secondary">← Previous</button>
+<button id="svmNextStep" class="secondary">Next →</button>
+<button id="svmAutoBuild" class="secondary">▶ Build SVM</button>
+<button id="svmPauseBuild" class="secondary">⏸ Pause</button>
+</div>
+
+<h3 style="margin-top:16px">Test point</h3>
+<label class="field">x₁<input id="svmTestX1" type="number" step="0.1" value="4.5"></label>
+<label class="field" style="margin-top:8px">x₂<input id="svmTestX2" type="number" step="0.1" value="4.0"></label>
+<button id="svmClassify" class="primary">Classify test point</button>
 </aside>
 
 <div class="stack">
 <div class="card"><div class="metric-row">
-<div class="metric"><small>Walkthrough step</small><strong id="svmWalkLabel">1 / 5</strong></div>
+<div class="metric"><small>Build stage</small><strong id="svmStageLabel">1 / 6</strong></div>
 <div class="metric"><small>Support vectors</small><strong id="svmSvCount">–</strong></div>
-<div class="metric"><small>Decision score f(x′)</small><strong id="svmScore">–</strong></div>
-<div class="metric"><small>Predicted class</small><strong id="svmPred">–</strong></div>
+<div class="metric"><small>Decision score f(x)</small><strong id="svmScore">–</strong></div>
+<div class="metric"><small>Predicted Y</small><strong id="svmPred">–</strong></div>
 </div></div>
 
 <div class="card"><div class="two">
-<div><h3>Decision surface slice + support vectors</h3><canvas id="svmCanvas" width="700" height="440" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">The model uses all 3 features. This graph shows an (x_1)-vs-(x_2) slice with (x_3) fixed to the selected value. Each training point is labelled with its actual (x_3).</p></div>
-<div><h3>What this stage means</h3><div id="svmStageExplain" class="math"></div></div>
+<div><h3>Decision boundary and support vectors</h3><canvas id="svmCanvas" width="700" height="440" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">Green = +1, red = −1. Ringed points are support vectors. Solid contour: f(x)=0. Dashed contours: f(x)=±1.</p></div>
+<div><h3>Current build stage</h3><div id="svmStageExplain" class="math"></div></div>
 </div></div>
 
-<div class="card"><h3>PDF training dataset</h3><div id="svmTable" class="tablewrap"></div></div>
+<div class="card"><h3>Training dataset for the selected kernel</h3><div id="svmTable" class="tablewrap"></div></div>
 
-<div class="card"><h3>Support vectors and dual coefficients</h3><p class="hint">A training point is a support vector when its optimized dual coefficient (alpha_i) is non-zero. Only support vectors contribute to the final decision function.</p><div id="svmSupportTable" class="tablewrap"></div></div>
+<div class="card"><h3>Kernel matrix K</h3><p class="hint">Kᵢⱼ = K(xᵢ,xⱼ). The matrix changes when the kernel changes.</p><div id="svmKernelMatrix" class="tablewrap"></div></div>
 
-<div class="card"><h3>Selected support-vector contribution</h3><label class="field" style="max-width:320px">Support vector<select id="svmSupportSelect"></select></label><div id="svmKernelMath" class="math" style="margin-top:10px"></div></div>
+<div class="card"><h3>Dual coefficients and support vectors</h3><div id="svmAlphaTable" class="tablewrap"></div></div>
+
+<div class="card"><h3>Inspect one support-vector contribution</h3><label class="field" style="max-width:320px">Support vector<select id="svmSupportSelect"></select></label><div id="svmKernelMath" class="math" style="margin-top:10px"></div></div>
 
 <div id="svmDecisionMath" class="card"></div>
-</div></div>
+</div>
+</div>
 </section>
 <footer class="footer">Deep Learning Visual Lab · ANN · CNN · RNN · RGB CNN · LSTM · Static browser application</footer>
 </main>
@@ -710,147 +730,168 @@ $("#dtGiniBtn").addEventListener("click",()=>setDtCriterion("gini"));
 $("#dtEntropyBtn").addEventListener("click",()=>setDtCriterion("entropy"));
 setDtCriterion("gini");
 
-// SVM — PDF dataset with trained Linear / Polynomial / RBF models
-const svmPdfX=[
- [1,2,1],
- [0,4,3],
- [0,3,0],
- [0,3,1],
- [5,0,3],
- [1,4,3]
-];
-const svmPdfY=[1,-1,1,-1,1,-1];
-const svmPdfTests=[[2,4,3],[1,1,1]];
-const svmScale={mean:[1.16666667,2.66666667,1.83333333],sd:[1.77169097,1.37436854,1.21335165]};
-const svmModels={
- linear:{name:"Linear",support:[3,0,2],dual:[-5.30294697,2.3585022,2.94444478],b:-1.37384925,params:{},acc:1},
- poly:{name:"Polynomial",support:[3,0,2,4],dual:[-1.30128606,0.81838634,0.47111633,0.01178339],b:-0.66497268,params:{gamma:1,coef0:1,degree:2},acc:1},
- rbf:{name:"RBF",support:[1,3,5,0,2,4],dual:[-0.61618463,-2.80335876,-0.73363929,1.56430564,1.83581086,0.75306618],b:0.24713444,params:{gamma:1},acc:1}
+// SVM — kernel-specific datasets, support vectors and decision boundaries
+const svmDemos={
+ linear:{
+  title:"Linear",
+  why:"This dataset is linearly separable. A single straight boundary can separate +1 and −1.",
+  X:[[1,5],[2,6],[2,4],[3,6],[3,5],[4,7],[5,2],[6,3],[6,1],[7,3],[7,2],[8,4]],
+  y:[1,1,1,1,1,1,-1,-1,-1,-1,-1,-1],
+  mean:[4.5,4.0],sd:[2.217355782608345,1.7795130420052185],
+  support:[6,7,2,4],
+  dual:[-0.25065260451667876,-0.3960071758851724,0.2763261136602695,0.37033366674158164],
+  b:0.0002577383145954855,
+  params:{},test:[4.5,4.0]
+ },
+ poly:{
+  title:"Polynomial degree 2",
+  why:"This is an XOR-style pattern. No single straight line can separate the classes; the degree-2 kernel creates interaction terms that produce a curved separator.",
+  X:[[1,1],[2,2],[1,2],[2,1],[5,5],[6,6],[5,6],[6,5],[1,5],[2,6],[1,6],[2,5],[5,1],[6,2],[5,2],[6,1]],
+  y:[1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1],
+  mean:[3.5,3.5],sd:[2.0615528128088303,2.0615528128088303],
+  support:[11,14,1,4],
+  dual:[-0.446000286232021,-0.44589817942276244,0.4459595935585724,0.445938872096211],
+  b:0,
+  params:{gamma:1,coef0:1,degree:2},test:[1.5,5.5]
+ },
+ rbf:{
+  title:"RBF / Gaussian",
+  why:"Class +1 lies near the center while class −1 surrounds it. A local nonlinear boundary is required; the RBF kernel measures distance-based similarity.",
+  X:[[3,3],[4,3],[3,4],[4,4],[3.5,2.8],[2.8,3.5],[4.2,3.5],[3.5,4.2],[1,1],[1,6],[6,1],[6,6],[1,3.5],[6,3.5],[3.5,1],[3.5,6]],
+  y:[1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1],
+  mean:[3.5,3.5],sd:[1.5708278072405009,1.5708278072405009],
+  support:[8,9,10,11,12,13,14,15,0,1,2,3],
+  dual:[-0.20748844719878146,-0.2077614149576914,-0.20764621168950737,-0.2079948168547423,-0.4979065984993473,-0.4975727641970039,-0.4979623111768681,-0.49774775802328325,0.7058423110099484,0.7055262274439338,0.7056436189402725,0.7050681652030708],
+  b:-0.7483630303600131,
+  params:{gamma:1},test:[3.5,3.5]
+ }
 };
 let svmTimer=null;
-function svmStd(x){return x.map((v,i)=>(v-svmScale.mean[i])/svmScale.sd[i])}
-function svmKernel(a,b,k,p){
-  const dot=a.reduce((s,v,i)=>s+v*b[i],0);
-  if(k==="linear")return dot;
-  if(k==="poly")return Math.pow(p.gamma*dot+p.coef0,p.degree);
-  const d2=a.reduce((s,v,i)=>s+(v-b[i])*(v-b[i]),0);
-  return Math.exp(-p.gamma*d2);
+function svmDemo(){return svmDemos[$("#svmKernelChoice").value]}
+function svmStd2(x,d){return [(x[0]-d.mean[0])/d.sd[0],(x[1]-d.mean[1])/d.sd[1]]}
+function svmKernel2(a,b,key,d){
+ const dot=a[0]*b[0]+a[1]*b[1];
+ if(key==="linear")return dot;
+ if(key==="poly")return Math.pow(d.params.gamma*dot+d.params.coef0,d.params.degree);
+ const q0=a[0]-b[0],q1=a[1]-b[1];
+ return Math.exp(-d.params.gamma*(q0*q0+q1*q1));
 }
-function svmDecisionRaw(x,k){
-  const m=svmModels[k],z=svmStd(x);
-  let score=m.b;
-  m.support.forEach((idx,j)=>{score+=m.dual[j]*svmKernel(svmStd(svmPdfX[idx]),z,k,m.params)});
-  return score;
+function svmScoreRaw(x,key){
+ const d=svmDemos[key],z=svmStd2(x,d);let score=d.b;
+ d.support.forEach((idx,j)=>{score+=d.dual[j]*svmKernel2(svmStd2(d.X[idx],d),z,key,d)});
+ return score;
 }
-function svmAlphaMap(k){
-  const m=svmModels[k],a=Array(6).fill(0);
-  m.support.forEach((idx,j)=>a[idx]=Math.abs(m.dual[j]));
-  return a;
+function svmAlphaMap(d){
+ const a=Array(d.X.length).fill(0);
+ d.support.forEach((idx,j)=>a[idx]=Math.abs(d.dual[j]));
+ return a;
 }
-function svmStageText(step,k){
-  const m=svmModels[k];
-  if(step===1)return "Stage 1 — Plot the six training samples. Green points are class +1; red points are class −1. No separator is shown yet.";
-  if(step===2)return "Stage 2 — Standardize each feature: zⱼ=(xⱼ−μⱼ)/σⱼ. The SVM is trained in this standardized 3-feature space.";
-  if(step===3)return "Stage 3 — Reveal the optimized support vectors. These are exactly the rows with αᵢ>0. For "+m.name+", there are "+m.support.length+" support vectors.";
-  if(step===4)return "Stage 4 — Draw f(x)=0. For nonlinear kernels the boundary is curved because f(x) is a weighted sum of kernel similarities to the support vectors.";
-  return "Stage 5 — Add the f(x)=+1 and f(x)=−1 margin contours, then classify the selected PDF test vector using the full support-vector decision function.";
+function svmStageText(step,key){
+ const d=svmDemos[key];
+ if(step===1)return "Stage 1 — Plot the raw training data. Before choosing a boundary, first inspect whether the class geometry looks linear or nonlinear.";
+ if(step===2)return "Stage 2 — Standardize x₁ and x₂. SVM distance and dot-product calculations are then made in the standardized feature space.";
+ if(step===3)return "Stage 3 — Compute the kernel matrix K. Each entry Kᵢⱼ measures the relationship between training samples xᵢ and xⱼ using the selected "+d.title+" kernel.";
+ if(step===4)return "Stage 4 — Solve the SVM dual optimization: maximize Σαᵢ − ½ΣΣαᵢαⱼyᵢyⱼKᵢⱼ, subject to αᵢ≥0 and Σαᵢyᵢ=0. Rows with αᵢ>0 become support vectors.";
+ if(step===5)return "Stage 5 — Build the decision function using only support vectors: f(x)=b+Σ(SV)(αᵢyᵢ)K(xᵢ,x). The decision boundary is the contour f(x)=0.";
+ return "Stage 6 — Add the margin contours f(x)=+1 and f(x)=−1, then classify the test point by sign(f(x)).";
 }
-function svmGridMap(){
-  const cv=$("#svmCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,pad=52;
-  return {ctx,W,H,pad,sx:x=>pad+((x+0.7)/6.4)*(W-2*pad),sy:y=>H-pad-((y+0.5)/5)*(H-2*pad),ix:px=>-0.7+(px-pad)/(W-2*pad)*6.4,iy:py=>-0.5+(H-pad-py)/(H-2*pad)*5};
+function svmBounds(d){
+ const xs=d.X.map(v=>v[0]),ys=d.X.map(v=>v[1]);
+ return {xmin:Math.min(...xs)-.8,xmax:Math.max(...xs)+.8,ymin:Math.min(...ys)-.8,ymax:Math.max(...ys)+.8};
+}
+function svmMap(d){
+ const cv=$("#svmCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=50,B=svmBounds(d);
+ return {ctx,W,H,p,B,sx:x=>p+(x-B.xmin)/(B.xmax-B.xmin)*(W-2*p),sy:y=>H-p-(y-B.ymin)/(B.ymax-B.ymin)*(H-2*p),ix:px=>B.xmin+(px-p)/(W-2*p)*(B.xmax-B.xmin),iy:py=>B.ymin+(H-p-py)/(H-2*p)*(B.ymax-B.ymin)};
 }
 function drawSvm(){
-  const k=$("#svmKernelChoice").value,m=svmModels[k],step=Number($("#svmWalkStep").value),slice=Number($("#svmSliceX3").value),M=svmGridMap(),ctx=M.ctx,W=M.W,H=M.H,p=M.pad;
-  ctx.clearRect(0,0,W,H);
-
-  if(step>=4){
-    const cell=6;
-    for(let py=p;py<H-p;py+=cell){
-      for(let px=p;px<W-p;px+=cell){
-        const x1=M.ix(px+cell/2),x2=M.iy(py+cell/2),score=svmDecisionRaw([x1,x2,slice],k);
-        ctx.fillStyle=score>=0?"rgba(21,128,61,.09)":"rgba(180,35,24,.08)";
-        ctx.fillRect(px,py,cell,cell);
-      }
-    }
-  }
-
-  ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;
-  for(let x=0;x<=5;x++){ctx.beginPath();ctx.moveTo(M.sx(x),p);ctx.lineTo(M.sx(x),H-p);ctx.stroke();}
-  for(let y=0;y<=4;y++){ctx.beginPath();ctx.moveTo(p,M.sy(y));ctx.lineTo(W-p,M.sy(y));ctx.stroke();}
-
-  if(step>=4){
-    const dx=.06,dy=.06;
-    for(let x=-.5;x<=5.5;x+=dx){
-      for(let y=-.3;y<=4.3;y+=dy){
-        const s=svmDecisionRaw([x,y,slice],k);
-        const sR=svmDecisionRaw([x+dx,y,slice],k),sU=svmDecisionRaw([x,y+dy,slice],k);
-        if(s*sR<=0||s*sU<=0){ctx.fillStyle="#152033";ctx.fillRect(M.sx(x)-1,M.sy(y)-1,3,3);}
-        if(step>=5){
-          if((s-1)*(sR-1)<=0||(s-1)*(sU-1)<=0){ctx.fillStyle="#607089";ctx.fillRect(M.sx(x),M.sy(y),2,2);}
-          if((s+1)*(sR+1)<=0||(s+1)*(sU+1)<=0){ctx.fillStyle="#607089";ctx.fillRect(M.sx(x),M.sy(y),2,2);}
-        }
-      }
-    }
-  }
-
-  const svSet=new Set(m.support);
-  svmPdfX.forEach((x,i)=>{
-    ctx.fillStyle=svmPdfY[i]>0?"#15803d":"#b42318";
-    ctx.beginPath();ctx.arc(M.sx(x[0]),M.sy(x[1]),8,0,Math.PI*2);ctx.fill();
-    if(step>=3&&svSet.has(i)){ctx.strokeStyle="#152033";ctx.lineWidth=3;ctx.beginPath();ctx.arc(M.sx(x[0]),M.sy(x[1]),14,0,Math.PI*2);ctx.stroke();}
-    ctx.fillStyle="#42516a";ctx.font="11px sans-serif";ctx.fillText("x"+(i+1)+"  x₃="+x[2],M.sx(x[0])+10,M.sy(x[1])-10);
-  });
-
-  if(step>=5){
-    const t=svmPdfTests[Number($("#svmPdfTest").value)];
-    ctx.fillStyle="#2563eb";ctx.beginPath();ctx.moveTo(M.sx(t[0]),M.sy(t[1])-12);ctx.lineTo(M.sx(t[0])+10,M.sy(t[1])+9);ctx.lineTo(M.sx(t[0])-10,M.sy(t[1])+9);ctx.closePath();ctx.fill();
-    ctx.fillStyle="#42516a";ctx.font="11px sans-serif";ctx.fillText("test x₃="+t[2],M.sx(t[0])+12,M.sy(t[1])+14);
-  }
-  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";ctx.fillText("x₁ →",W-55,H-17);ctx.save();ctx.translate(17,H/2+15);ctx.rotate(-Math.PI/2);ctx.fillText("x₂",0,0);ctx.restore();
+ const key=$("#svmKernelChoice").value,d=svmDemos[key],step=Number($("#svmBuildStep").value),M=svmMap(d),ctx=M.ctx,W=M.W,H=M.H,p=M.p;
+ ctx.clearRect(0,0,W,H);
+ if(step>=5){
+   const cell=6;
+   for(let py=p;py<H-p;py+=cell)for(let px=p;px<W-p;px+=cell){
+     const s=svmScoreRaw([M.ix(px+cell/2),M.iy(py+cell/2)],key);
+     ctx.fillStyle=s>=0?"rgba(21,128,61,.10)":"rgba(180,35,24,.09)";
+     ctx.fillRect(px,py,cell,cell);
+   }
+ }
+ ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;
+ for(let i=0;i<=6;i++){const x=p+i*(W-2*p)/6;ctx.beginPath();ctx.moveTo(x,p);ctx.lineTo(x,H-p);ctx.stroke();const y=p+i*(H-2*p)/6;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(W-p,y);ctx.stroke();}
+ if(step>=5){
+   const dx=(M.B.xmax-M.B.xmin)/120,dy=(M.B.ymax-M.B.ymin)/100;
+   for(let x=M.B.xmin;x<M.B.xmax;x+=dx)for(let y=M.B.ymin;y<M.B.ymax;y+=dy){
+     const s=svmScoreRaw([x,y],key),sr=svmScoreRaw([x+dx,y],key),su=svmScoreRaw([x,y+dy],key);
+     if(s*sr<=0||s*su<=0){ctx.fillStyle="#152033";ctx.fillRect(M.sx(x)-1,M.sy(y)-1,3,3);}
+     if(step>=6){
+       if((s-1)*(sr-1)<=0||(s-1)*(su-1)<=0){ctx.fillStyle="#607089";ctx.fillRect(M.sx(x),M.sy(y),2,2);}
+       if((s+1)*(sr+1)<=0||(s+1)*(su+1)<=0){ctx.fillStyle="#607089";ctx.fillRect(M.sx(x),M.sy(y),2,2);}
+     }
+   }
+ }
+ const svSet=new Set(d.support);
+ d.X.forEach((x,i)=>{
+   ctx.fillStyle=d.y[i]>0?"#15803d":"#b42318";
+   ctx.beginPath();ctx.arc(M.sx(x[0]),M.sy(x[1]),8,0,Math.PI*2);ctx.fill();
+   if(step>=4&&svSet.has(i)){ctx.strokeStyle="#152033";ctx.lineWidth=3;ctx.beginPath();ctx.arc(M.sx(x[0]),M.sy(x[1]),14,0,Math.PI*2);ctx.stroke();}
+   ctx.fillStyle="#42516a";ctx.font="10px sans-serif";ctx.fillText("x"+(i+1),M.sx(x[0])+9,M.sy(x[1])-8);
+ });
+ if(step>=6){
+   const tx=Number($("#svmTestX1").value),ty=Number($("#svmTestX2").value);
+   ctx.fillStyle="#2563eb";ctx.beginPath();ctx.moveTo(M.sx(tx),M.sy(ty)-12);ctx.lineTo(M.sx(tx)+10,M.sy(ty)+9);ctx.lineTo(M.sx(tx)-10,M.sy(ty)+9);ctx.closePath();ctx.fill();
+ }
+ ctx.fillStyle="#42516a";ctx.font="13px sans-serif";ctx.fillText("x₁ →",W-55,H-17);ctx.save();ctx.translate(18,H/2+10);ctx.rotate(-Math.PI/2);ctx.fillText("x₂",0,0);ctx.restore();
 }
-function svmSupportRows(k,test){
-  const m=svmModels[k],zt=svmStd(test);
-  return m.support.map((idx,j)=>{
-    const z=svmStd(svmPdfX[idx]),kv=svmKernel(z,zt,k,m.params),beta=m.dual[j],alpha=Math.abs(beta),contrib=beta*kv;
-    return {idx,z,kv,beta,alpha,contrib,y:svmPdfY[idx],x:svmPdfX[idx]};
-  });
+function svmMatrixHtml(key,d){
+ const z=d.X.map(x=>svmStd2(x,d)),n=d.X.length;
+ let h='<table class="tbl"><thead><tr><th>K</th>'+d.X.map((_,i)=>'<th>x'+(i+1)+'</th>').join("")+'</tr></thead><tbody>';
+ for(let i=0;i<n;i++){h+='<tr><td><b>x'+(i+1)+'</b></td>';for(let j=0;j<n;j++)h+='<td>'+fmt(svmKernel2(z[i],z[j],key,d),3)+'</td>';h+='</tr>';}
+ return h+'</tbody></table>';
+}
+function svmSupportRows(key,d,test){
+ const zt=svmStd2(test,d);
+ return d.support.map((idx,j)=>{const z=svmStd2(d.X[idx],d),kv=svmKernel2(z,zt,key,d),beta=d.dual[j];return {idx,x:d.X[idx],y:d.y[idx],alpha:Math.abs(beta),beta,kv,contrib:beta*kv,z}});
 }
 function renderSvmKernelMath(){
-  const k=$("#svmKernelChoice").value,m=svmModels[k],test=svmPdfTests[Number($("#svmPdfTest").value)],rows=svmSupportRows(k,test),sel=Number($("#svmSupportSelect").value)||0,r=rows[sel],zt=svmStd(test),dot=r.z.reduce((s,v,i)=>s+v*zt[i],0);
-  let html='Support vector x'+(r.idx+1)+' = ['+r.x.join(", ")+']<br>Class y = '+r.y+'<br>α = '+fmt(r.alpha,6)+'<br>Signed coefficient αy = '+fmt(r.beta,6)+'<br><br>';
-  if(k==="linear"){
-    html+='K(x,z)=xᵀz<br>= '+r.z.map((v,i)=>fmt(v,5)+'×'+fmt(zt[i],5)).join(" + ")+'<br>= <b>'+fmt(r.kv,6)+'</b>';
-  }else if(k==="poly"){
-    html+='Standardized dot product = '+r.z.map((v,i)=>fmt(v,5)+'×'+fmt(zt[i],5)).join(" + ")+' = <b>'+fmt(dot,6)+'</b><br><br>K(x,z)=(γxᵀz+r)<sup>d</sup><br>= (1×'+fmt(dot,6)+'+1)<sup>2</sup><br>= <b>'+fmt(r.kv,6)+'</b>';
-  }else{
-    const ds=r.z.map((v,i)=>v-zt[i]),sq=ds.map(v=>v*v);
-    html+='Δ = ['+ds.map(v=>fmt(v,5)).join(", ")+']<br>Squared differences = ['+sq.map(v=>fmt(v,5)).join(", ")+']<br>‖x−z‖² = <b>'+fmt(sq.reduce((a,b)=>a+b,0),6)+'</b><br><br>K(x,z)=exp(−1×‖x−z‖²)=<b>'+fmt(r.kv,6)+'</b>';
-  }
-  html+='<br><br>Contribution to f(x′) = (αy)K = '+fmt(r.beta,6)+'×'+fmt(r.kv,6)+' = <b>'+fmt(r.contrib,6)+'</b>';
-  $("#svmKernelMath").innerHTML=html;
+ const key=$("#svmKernelChoice").value,d=svmDemos[key],test=[Number($("#svmTestX1").value),Number($("#svmTestX2").value)],rows=svmSupportRows(key,d,test),sel=Math.min(Number($("#svmSupportSelect").value)||0,rows.length-1),r=rows[sel],zt=svmStd2(test,d),dot=r.z[0]*zt[0]+r.z[1]*zt[1];
+ let h='Support vector x'+(r.idx+1)+' = ['+r.x.join(", ")+']<br>y = '+r.y+'; α = '+fmt(r.alpha,6)+'; αy = '+fmt(r.beta,6)+'<br><br>';
+ if(key==="linear")h+='K(x,z)=xᵀz<br>= '+fmt(r.z[0],5)+'×'+fmt(zt[0],5)+' + '+fmt(r.z[1],5)+'×'+fmt(zt[1],5)+'<br>= <b>'+fmt(r.kv,6)+'</b>';
+ else if(key==="poly")h+='xᵀz = '+fmt(r.z[0],5)+'×'+fmt(zt[0],5)+' + '+fmt(r.z[1],5)+'×'+fmt(zt[1],5)+' = '+fmt(dot,6)+'<br><br>K=(1×'+fmt(dot,6)+'+1)² = <b>'+fmt(r.kv,6)+'</b>';
+ else{const d0=r.z[0]-zt[0],d1=r.z[1]-zt[1],d2=d0*d0+d1*d1;h+='Δ=['+fmt(d0,5)+', '+fmt(d1,5)+']<br>‖x−z‖²='+fmt(d0*d0)+'+'+fmt(d1*d1)+'=<b>'+fmt(d2,6)+'</b><br><br>K=exp(−1×'+fmt(d2,6)+')=<b>'+fmt(r.kv,6)+'</b>';}
+ h+='<br><br>Contribution=(αy)K='+fmt(r.beta,6)+'×'+fmt(r.kv,6)+'=<b>'+fmt(r.contrib,6)+'</b>';
+ $("#svmKernelMath").innerHTML=h;
 }
 function renderSvm(){
-  const k=$("#svmKernelChoice").value,m=svmModels[k],test=svmPdfTests[Number($("#svmPdfTest").value)],rows=svmSupportRows(k,test),score=svmDecisionRaw(test,k),alpha=svmAlphaMap(k),step=Number($("#svmWalkStep").value);
-  $("#svmWalkLabel").textContent=step+" / 5";$("#svmSvCount").textContent=m.support.length+" / 6";$("#svmScore").textContent=step>=5?fmt(score,6):"–";$("#svmPred").textContent=step>=5?(score>=0?"+1":"−1"):"–";$("#svmSliceLabel").textContent=fmt(Number($("#svmSliceX3").value),1);
-  $("#svmStageExplain").innerHTML=svmStageText(step,k);
-  $("#svmTable").innerHTML='<table class="tbl"><thead><tr><th>i</th><th>x₁</th><th>x₂</th><th>x₃</th><th>y</th><th>α</th><th>Support vector?</th></tr></thead><tbody>'+svmPdfX.map((x,i)=>'<tr class="'+(alpha[i]>1e-8?"selected":"")+'"><td>x'+(i+1)+'</td><td>'+x[0]+'</td><td>'+x[1]+'</td><td>'+x[2]+'</td><td>'+svmPdfY[i]+'</td><td>'+fmt(alpha[i],6)+'</td><td>'+(alpha[i]>1e-8?"Yes":"No")+'</td></tr>').join("")+'</tbody></table>';
-  $("#svmSupportTable").innerHTML='<table class="tbl"><thead><tr><th>SV</th><th>Vector</th><th>y</th><th>α</th><th>αy</th><th>K(SV,x′)</th><th>Contribution</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>x'+(r.idx+1)+'</td><td>['+r.x.join(", ")+']</td><td>'+r.y+'</td><td>'+fmt(r.alpha,6)+'</td><td>'+fmt(r.beta,6)+'</td><td>'+fmt(r.kv,6)+'</td><td>'+fmt(r.contrib,6)+'</td></tr>').join("")+'</tbody></table>';
-  $("#svmSupportSelect").innerHTML=rows.map((r,i)=>'<option value="'+i+'">x'+(r.idx+1)+' · α='+fmt(r.alpha,4)+'</option>').join("");
-  const sum=rows.reduce((s,r)=>s+r.contrib,0);
-  $("#svmDecisionMath").innerHTML='<div class="kicker">'+m.name+' SVM decision function</div><h3>Full classification working for x′ = ['+test.join(", ")+']</h3><div class="math">f(x′)=b+Σ<sub>SV</sub>(αᵢyᵢ)K(xᵢ,x′)<br><br>b = '+fmt(m.b,6)+'<br>'+rows.map(r=>'x'+(r.idx+1)+': '+fmt(r.beta,6)+'×'+fmt(r.kv,6)+' = '+fmt(r.contrib,6)).join("<br>")+'<br><br>Σ contributions = <b>'+fmt(sum,6)+'</b><br>f(x′) = '+fmt(m.b,6)+' + '+fmt(sum,6)+' = <b>'+fmt(score,6)+'</b><br><br>sign(f(x′)) = <b>'+(score>=0?"+1":"−1")+'</b></div>';
-  drawSvm();renderSvmKernelMath();
+ const key=$("#svmKernelChoice").value,d=svmDemos[key],step=Number($("#svmBuildStep").value),test=[Number($("#svmTestX1").value),Number($("#svmTestX2").value)],score=svmScoreRaw(test,key),alpha=svmAlphaMap(d),rows=svmSupportRows(key,d,test);
+ $("#svmStageLabel").textContent=step+" / 6";$("#svmSvCount").textContent=step>=4?d.support.length+" / "+d.X.length:"–";$("#svmScore").textContent=step>=6?fmt(score,6):"–";$("#svmPred").textContent=step>=6?(score>=0?"+1":"−1"):"–";
+ $("#svmDatasetWhy").innerHTML="<b>"+d.title+" dataset</b><br>"+d.why;
+ $("#svmStageExplain").innerHTML=svmStageText(step,key);
+ $("#svmTable").innerHTML='<table class="tbl"><thead><tr><th>Row</th><th>x₁</th><th>x₂</th><th>Y</th><th>Standardized z₁</th><th>Standardized z₂</th></tr></thead><tbody>'+d.X.map((x,i)=>{const z=svmStd2(x,d);return '<tr class="'+(step>=4&&alpha[i]>1e-8?"selected":"")+'"><td>x'+(i+1)+'</td><td>'+fmt(x[0],2)+'</td><td>'+fmt(x[1],2)+'</td><td><b>'+d.y[i]+'</b></td><td>'+(step>=2?fmt(z[0],4):"–")+'</td><td>'+(step>=2?fmt(z[1],4):"–")+'</td></tr>'}).join("")+'</tbody></table>';
+ $("#svmKernelMatrix").innerHTML=step>=3?svmMatrixHtml(key,d):'<div class="hint">Shown at Stage 3.</div>';
+ $("#svmAlphaTable").innerHTML=step>=4?'<table class="tbl"><thead><tr><th>Row</th><th>Y</th><th>α</th><th>αY</th><th>Support vector?</th></tr></thead><tbody>'+d.X.map((x,i)=>{const pos=d.support.indexOf(i),beta=pos>=0?d.dual[pos]:0;return '<tr class="'+(pos>=0?"selected":"")+'"><td>x'+(i+1)+'</td><td>'+d.y[i]+'</td><td>'+fmt(alpha[i],6)+'</td><td>'+fmt(beta,6)+'</td><td>'+(pos>=0?"Yes":"No")+'</td></tr>'}).join("")+'</tbody></table>':'<div class="hint">Shown at Stage 4 after solving the dual optimization.</div>';
+ $("#svmSupportSelect").innerHTML=rows.map((r,i)=>'<option value="'+i+'">x'+(r.idx+1)+' · α='+fmt(r.alpha,4)+'</option>').join("");
+ const sum=rows.reduce((s,r)=>s+r.contrib,0);
+ let extra="";
+ if(key==="linear"){
+   const zsv=d.support.map((idx,j)=>({z:svmStd2(d.X[idx],d),beta:d.dual[j]}));
+   const w=[zsv.reduce((s,r)=>s+r.beta*r.z[0],0),zsv.reduce((s,r)=>s+r.beta*r.z[1],0)];
+   extra='<br><br>For the linear kernel, w=Σ(αy)x = [<b>'+fmt(w[0],6)+', '+fmt(w[1],6)+'</b>]<br>Boundary: '+fmt(w[0],5)+'z₁ + '+fmt(w[1],5)+'z₂ + '+fmt(d.b,5)+' = 0';
+ }
+ $("#svmDecisionMath").innerHTML='<div class="kicker">Decision function</div><h3>How the boundary is found</h3><div class="math">f(x)=b+Σ<sub>support vectors</sub>(αᵢyᵢ)K(xᵢ,x)<br><br>Decision boundary: <b>f(x)=0</b><br>Margins: <b>f(x)=+1</b> and <b>f(x)=−1</b>'+extra+'<br><br>For test point ['+fmt(test[0])+', '+fmt(test[1])+']:<br>b='+fmt(d.b,6)+'<br>'+rows.map(r=>'x'+(r.idx+1)+': '+fmt(r.beta,6)+'×'+fmt(r.kv,6)+' = '+fmt(r.contrib,6)).join("<br>")+'<br><br>Σ contributions='+fmt(sum,6)+'<br>f(x)='+fmt(d.b,6)+'+'+fmt(sum,6)+'=<b>'+fmt(score,6)+'</b><br>Predicted Y=<b>'+(score>=0?"+1":"−1")+'</b></div>';
+ drawSvm();renderSvmKernelMath();
 }
-function stopSvmWalk(){if(svmTimer){clearInterval(svmTimer);svmTimer=null}$("#svmWalkAuto").textContent="▶ Walkthrough"}
-$("#svmKernelChoice").addEventListener("change",()=>{$("#svmWalkStep").value=1;renderSvm()});
-$("#svmPdfTest").addEventListener("change",renderSvm);
-$("#svmSliceX3").addEventListener("input",renderSvm);
-$("#svmWalkStep").addEventListener("input",()=>{stopSvmWalk();renderSvm()});
-$("#svmWalkPrev").addEventListener("click",()=>{stopSvmWalk();$("#svmWalkStep").value=clamp(Number($("#svmWalkStep").value)-1,1,5);renderSvm()});
-$("#svmWalkNext").addEventListener("click",()=>{stopSvmWalk();$("#svmWalkStep").value=clamp(Number($("#svmWalkStep").value)+1,1,5);renderSvm()});
-$("#svmWalkAuto").addEventListener("click",()=>{if(svmTimer)return;let s=Number($("#svmWalkStep").value);if(s>=5){s=0}$("#svmWalkAuto").textContent="Running…";svmTimer=setInterval(()=>{s++;$("#svmWalkStep").value=s;renderSvm();if(s>=5)stopSvmWalk()},1100)});
-$("#svmWalkPause").addEventListener("click",stopSvmWalk);
+function stopSvm(){if(svmTimer){clearInterval(svmTimer);svmTimer=null}$("#svmAutoBuild").textContent="▶ Build SVM"}
+function resetSvmForKernel(){
+ const d=svmDemo();$("#svmTestX1").value=d.test[0];$("#svmTestX2").value=d.test[1];$("#svmBuildStep").value=1;renderSvm();
+}
+$("#svmKernelChoice").addEventListener("change",()=>{stopSvm();resetSvmForKernel()});
+$("#svmBuildStep").addEventListener("input",()=>{stopSvm();renderSvm()});
+$("#svmPrevStep").addEventListener("click",()=>{stopSvm();$("#svmBuildStep").value=clamp(Number($("#svmBuildStep").value)-1,1,6);renderSvm()});
+$("#svmNextStep").addEventListener("click",()=>{stopSvm();$("#svmBuildStep").value=clamp(Number($("#svmBuildStep").value)+1,1,6);renderSvm()});
+$("#svmAutoBuild").addEventListener("click",()=>{if(svmTimer)return;let s=Number($("#svmBuildStep").value);if(s>=6)s=0;$("#svmAutoBuild").textContent="Building…";svmTimer=setInterval(()=>{s++;$("#svmBuildStep").value=s;renderSvm();if(s>=6)stopSvm()},1250)});
+$("#svmPauseBuild").addEventListener("click",stopSvm);
+$("#svmClassify").addEventListener("click",()=>{$("#svmBuildStep").value=6;renderSvm()});
+$("#svmTestX1").addEventListener("input",renderSvm);$("#svmTestX2").addEventListener("input",renderSvm);
 $("#svmSupportSelect").addEventListener("change",renderSvmKernelMath);
-renderSvm();
+resetSvmForKernel();
 
 })();
 </script>
