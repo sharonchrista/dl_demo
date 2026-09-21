@@ -25,7 +25,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <main class="app">
 <header class="hero"><div><h1>Deep Learning Visual Lab</h1><p>Interactive classroom demonstrator for <b>Linear Regression</b>, <b>Decision Trees</b>, <b>SVM</b>, <b>ANN</b>, <b>CNN</b>, <b>RNN</b>, <b>RGB CNN</b>, and <b>LSTM</b>. The purpose is not to hide training behind a library call: every multiplication, addition, activation, loss term, gradient, and weight update is shown explicitly.</p></div><div class="badge">Teaching mode · classifiers fixed · build 2026-09-21b</div></header>
 <nav class="tabs" aria-label="Lab sections">
-<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button><button class="tab" data-tab="linreg">6 · Linear Classifier</button><button class="tab" data-tab="dtree">7 · Decision Tree</button><button class="tab" data-tab="svm">8 · SVM</button><button class="tab" data-tab="polyreg">9 · Polynomial Regression</button><button class="tab" data-tab="fitdemo">10 · Underfit / Overfit</button>
+<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button><button class="tab" data-tab="linreg">6 · Linear Classifier</button><button class="tab" data-tab="dtree">7 · Decision Tree</button><button class="tab" data-tab="svm">8 · SVM</button><button class="tab" data-tab="polyreg">9 · Polynomial Regression</button><button class="tab" data-tab="fitdemo">10 · Underfit / Overfit</button><button class="tab" data-tab="l1demo">11 · L1 / Lasso</button>
 </nav>
 
 <section id="ann" class="panel active">
@@ -279,22 +279,22 @@ Higher degree → more flexible curve
 <div class="grid">
 <aside class="card">
 <h2>Underfitting vs Good Fit vs Overfitting</h2>
-<p class="hint">Same temperature–energy regression problem, now split into <b>training</b> and <b>test</b> observations so generalization can be measured.</p>
+<p class="hint">A different noisy regression dataset: <b>soil moisture (%) → plant growth score</b>. The data are split into training and test observations so generalization can be measured.</p>
 <div class="controls">
 <button id="fitUnderBtn" class="secondary">Underfit · Degree 1</button>
-<button id="fitGoodBtn" class="secondary">Good fit · Degree 3</button>
+<button id="fitGoodBtn" class="secondary">Good fit · Degree 4</button>
 <button id="fitOverBtn" class="secondary">Overfit · Degree 7</button>
 </div>
 <label class="field" style="margin-top:12px">Polynomial degree
-<input id="fitDegree" type="range" min="1" max="7" step="1" value="3">
+<input id="fitDegree" type="range" min="1" max="7" step="1" value="4">
 </label>
-<div class="status">Selected degree = <b id="fitDegreeLabel">3</b></div>
+<div class="status">Selected degree = <b id="fitDegreeLabel">4</b></div>
 <div id="fitMeaning" class="callout" style="margin-top:10px"></div>
 </aside>
 
 <div class="stack">
 <div class="card"><div class="metric-row">
-<div class="metric"><small>Degree</small><strong id="fitDegreeMetric">3</strong></div>
+<div class="metric"><small>Degree</small><strong id="fitDegreeMetric">4</strong></div>
 <div class="metric"><small>Training MSE</small><strong id="fitTrainMse">–</strong></div>
 <div class="metric"><small>Test MSE</small><strong id="fitTestMse">–</strong></div>
 <div class="metric"><small>Generalization gap</small><strong id="fitGap">–</strong></div>
@@ -308,6 +308,48 @@ Higher degree → more flexible curve
 <div class="card"><h3>Why this is underfitting / good fitting / overfitting</h3><div id="fitExplain" class="math"></div></div>
 
 <div class="card"><h3>Train/test predictions</h3><div id="fitPredTable" class="tablewrap"></div></div>
+</div>
+</div>
+</section>
+
+
+<section id="l1demo" class="panel">
+<div class="grid">
+<aside class="card">
+<h2>L1 Regularization — Lasso Regression</h2>
+<p class="hint">Start with an intentionally flexible <b>degree-7 polynomial</b> on the soil-moisture dataset. Increase λ and watch unnecessary coefficients shrink exactly to zero.</p>
+<div class="callout">
+<b>Lasso objective</b><br>
+J(β)= (1/2n)Σ(Y−Ŷ)² + λΣ|βⱼ|<br><br>
+The intercept is not penalized.
+</div>
+<label class="field" style="margin-top:12px">Regularization strength λ
+<input id="l1Lambda" type="range" min="0" max="2" step="0.05" value="0.10">
+</label>
+<div class="status">λ = <b id="l1LambdaLabel">0.10</b></div>
+<div class="controls">
+<button id="l1None" class="secondary">λ = 0</button>
+<button id="l1Useful" class="secondary">Moderate λ</button>
+<button id="l1Strong" class="secondary">Strong λ</button>
+</div>
+</aside>
+
+<div class="stack">
+<div class="card"><div class="metric-row">
+<div class="metric"><small>λ</small><strong id="l1LambdaMetric">0.10</strong></div>
+<div class="metric"><small>Non-zero coefficients</small><strong id="l1Nonzero">–</strong></div>
+<div class="metric"><small>Training MSE</small><strong id="l1TrainMse">–</strong></div>
+<div class="metric"><small>Test MSE</small><strong id="l1TestMse">–</strong></div>
+</div></div>
+
+<div class="card"><div class="two">
+<div><h3>Regularized degree-7 curve</h3><canvas id="l1Curve" width="680" height="420" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">As λ increases, the curve generally becomes less sensitive to small fluctuations.</p></div>
+<div><h3>Coefficient shrinkage</h3><canvas id="l1CoeffCanvas" width="520" height="340" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">L1 can set coefficients exactly to zero — an implicit form of feature selection.</p></div>
+</div></div>
+
+<div class="card"><h3>How L1 changes the optimization</h3><div id="l1Math" class="math"></div></div>
+
+<div class="card"><h3>Polynomial coefficients after L1 regularization</h3><div id="l1CoeffTable" class="tablewrap"></div></div>
 </div>
 </div>
 </section>
@@ -1143,12 +1185,18 @@ $("#prTestX").addEventListener("input",renderPr);
 renderPr();
 
 
-// Underfitting / Good Fit / Overfitting
-const fitTrainIdx=[0,1,3,4,6,7,9,11];
-const fitTestIdx=[2,5,8,10];
+// Underfitting / Good Fit / Overfitting — separate soil-moisture dataset
+const fitRows=[
+ {x:10,y:50.6},{x:15,y:61.0},{x:20,y:61.4},{x:25,y:74.1},
+ {x:30,y:75.6},{x:35,y:86.5},{x:40,y:78.4},{x:45,y:86.4},
+ {x:50,y:78.5},{x:55,y:82.2},{x:60,y:70.0},{x:65,y:71.6},
+ {x:70,y:63.5},{x:75,y:63.4}
+];
+const fitTrainIdx=[0,1,3,4,6,7,9,10,12,13];
+const fitTestIdx=[2,5,8,11];
 
 function fitPoly(degree){
-  const train=fitTrainIdx.map(i=>prRows[i]),test=fitTestIdx.map(i=>prRows[i]);
+  const train=fitTrainIdx.map(i=>fitRows[i]),test=fitTestIdx.map(i=>fitRows[i]);
   const mean=train.reduce((s,r)=>s+r.x,0)/train.length;
   const sd=Math.sqrt(train.reduce((s,r)=>s+(r.x-mean)*(r.x-mean),0)/train.length);
   const makeRow=x=>{const z=(x-mean)/sd;return Array.from({length:degree+1},(_,j)=>Math.pow(z,j));};
@@ -1168,28 +1216,28 @@ function fitPoly(degree){
 }
 function fitLabel(d){
   if(d===1)return "UNDERFITTING";
-  if(d===3)return "GOOD FIT";
+  if(d===4)return "GOOD FIT";
   if(d===7)return "OVERFITTING";
-  return d<3?"Tending to underfit":(d>5?"High-complexity model":"Intermediate complexity");
+  return d<4?"Tending to underfit":(d>5?"High-complexity model":"Intermediate complexity");
 }
 function fitExplanation(f){
-  if(f.degree===1)return '<b>Underfitting:</b> a straight line cannot capture the curved relationship. Training error is already high, so the model has <b>high bias</b>. More data alone will not fix the missing model flexibility.';
-  if(f.degree===3)return '<b>Good fit:</b> the curve captures the main pattern while keeping training and test errors low and reasonably close. This is the desired balance between bias and variance.';
-  if(f.degree===7)return '<b>Overfitting:</b> the polynomial has enough flexibility to nearly interpolate the training points. Training error approaches zero, but test error is higher than for the simpler good-fit model. The model has learned small training-set details that do not generalize.';
-  return 'Compare the training and test errors. Model complexity increases with degree; the best choice is not necessarily the degree with the smallest training error.';
+  if(f.degree===1)return '<b>Underfitting:</b> the straight line misses the rise-and-fall relationship between soil moisture and growth. Both training and test errors remain high — a high-bias model.';
+  if(f.degree===4)return '<b>Good fit:</b> the model captures the broad nonlinear growth pattern without chasing individual noisy observations. Training and test errors are both relatively low.';
+  if(f.degree===7)return '<b>Overfitting:</b> the curve bends sharply to match the training observations. Training error becomes very small, but the held-out test error rises sharply — a high-variance model.';
+  return 'Compare training and test error as degree increases. Lower training error alone does not imply a better model.';
 }
 function drawFit(f){
   const cv=$("#fitCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=52;
-  const sx=x=>p+((x-9)/(33-9))*(W-2*p),sy=y=>H-p-((y-60)/(125-60))*(H-2*p);
+  const sx=x=>p+((x-7)/(78-7))*(W-2*p),sy=y=>H-p-((y-45)/(92-45))*(H-2*p);
   ctx.clearRect(0,0,W,H);ctx.strokeStyle="#e3e8f0";ctx.lineWidth=1;
-  for(let x=10;x<=32;x+=2){ctx.beginPath();ctx.moveTo(sx(x),p);ctx.lineTo(sx(x),H-p);ctx.stroke();}
-  for(let y=60;y<=120;y+=10){ctx.beginPath();ctx.moveTo(p,sy(y));ctx.lineTo(W-p,sy(y));ctx.stroke();}
+  for(let x=10;x<=75;x+=10){ctx.beginPath();ctx.moveTo(sx(x),p);ctx.lineTo(sx(x),H-p);ctx.stroke();}
+  for(let y=50;y<=90;y+=10){ctx.beginPath();ctx.moveTo(p,sy(y));ctx.lineTo(W-p,sy(y));ctx.stroke();}
   ctx.strokeStyle="#2563eb";ctx.lineWidth=4;ctx.beginPath();
-  for(let x=10;x<=32;x+=.08){const y=f.predict(x);if(x===10)ctx.moveTo(sx(x),sy(y));else ctx.lineTo(sx(x),sy(y));}
+  for(let x=10;x<=75;x+=.18){const y=f.predict(x);if(x===10)ctx.moveTo(sx(x),sy(y));else ctx.lineTo(sx(x),sy(y));}
   ctx.stroke();
   f.train.forEach(r=>{ctx.fillStyle="#7c3aed";ctx.beginPath();ctx.arc(sx(r.x),sy(r.y),7,0,Math.PI*2);ctx.fill();});
   f.test.forEach(r=>{ctx.fillStyle="#fff";ctx.strokeStyle="#c2410c";ctx.lineWidth=3;ctx.fillRect(sx(r.x)-6,sy(r.y)-6,12,12);ctx.strokeRect(sx(r.x)-6,sy(r.y)-6,12,12);});
-  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";ctx.fillText("Temperature (°C) →",W-150,H-15);ctx.save();ctx.translate(18,H/2+60);ctx.rotate(-Math.PI/2);ctx.fillText("Energy use",0,0);ctx.restore();
+  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";ctx.fillText("Soil moisture (%) →",W-145,H-15);ctx.save();ctx.translate(18,H/2+50);ctx.rotate(-Math.PI/2);ctx.fillText("Plant growth score",0,0);ctx.restore();
 }
 function drawFitErrors(selected){
   const models=Array.from({length:7},(_,i)=>fitPoly(i+1)),cv=$("#fitErrorCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=45;
@@ -1212,15 +1260,90 @@ function renderFit(){
   $("#fitMeaning").innerHTML='<b>'+fitLabel(d)+'</b>';
   $("#fitExplain").innerHTML=fitExplanation(f)+'<br><br><b>Training MSE = '+fmt(f.trainMse,6)+'</b><br><b>Test MSE = '+fmt(f.testMse,6)+'</b><br><b>Generalization gap = Test MSE − Training MSE = '+fmt(f.gap,6)+'</b>';
   const trRows=f.train.map((r,i)=>({set:"Train",x:r.x,y:r.y,p:f.trainPred[i]})),teRows=f.test.map((r,i)=>({set:"Test",x:r.x,y:r.y,p:f.testPred[i]}));
-  $("#fitPredTable").innerHTML='<table class="tbl"><thead><tr><th>Set</th><th>x</th><th>Actual Y</th><th>Predicted Ŷ</th><th>Residual</th><th>Residual²</th></tr></thead><tbody>'+trRows.concat(teRows).map(r=>{const e=r.y-r.p;return '<tr class="'+(r.set==="Test"?"selected":"")+'"><td>'+r.set+'</td><td>'+r.x+'</td><td>'+r.y+'</td><td>'+fmt(r.p,3)+'</td><td>'+fmt(e,3)+'</td><td>'+fmt(e*e,4)+'</td></tr>'}).join("")+'</tbody></table>';
+  $("#fitPredTable").innerHTML='<table class="tbl"><thead><tr><th>Set</th><th>Soil moisture</th><th>Actual Y</th><th>Predicted Ŷ</th><th>Residual</th><th>Residual²</th></tr></thead><tbody>'+trRows.concat(teRows).map(r=>{const e=r.y-r.p;return '<tr class="'+(r.set==="Test"?"selected":"")+'"><td>'+r.set+'</td><td>'+r.x+'%</td><td>'+r.y+'</td><td>'+fmt(r.p,3)+'</td><td>'+fmt(e,3)+'</td><td>'+fmt(e*e,4)+'</td></tr>'}).join("")+'</tbody></table>';
   drawFit(f);drawFitErrors(d);
 }
 function setFitDegree(d){$("#fitDegree").value=d;renderFit()}
 $("#fitDegree").addEventListener("input",renderFit);
 $("#fitUnderBtn").addEventListener("click",()=>setFitDegree(1));
-$("#fitGoodBtn").addEventListener("click",()=>setFitDegree(3));
+$("#fitGoodBtn").addEventListener("click",()=>setFitDegree(4));
 $("#fitOverBtn").addEventListener("click",()=>setFitDegree(7));
 renderFit();
+
+
+// L1 / Lasso regularization on the degree-7 soil-moisture model
+function softThreshold(v,l){return v>l?v-l:(v<-l?v+l:0)}
+function l1Fit(lambda){
+  const train=fitTrainIdx.map(i=>fitRows[i]),test=fitTestIdx.map(i=>fitRows[i]),degree=7;
+  const mean=train.reduce((s,r)=>s+r.x,0)/train.length;
+  const sd=Math.sqrt(train.reduce((s,r)=>s+(r.x-mean)*(r.x-mean),0)/train.length);
+  const zTrain=train.map(r=>(r.x-mean)/sd);
+  const raw=zTrain.map(z=>Array.from({length:degree},(_,j)=>Math.pow(z,j+1)));
+  const fmean=Array.from({length:degree},(_,j)=>raw.reduce((s,row)=>s+row[j],0)/raw.length);
+  const fsd=Array.from({length:degree},(_,j)=>Math.sqrt(raw.reduce((s,row)=>s+(row[j]-fmean[j])**2,0)/raw.length)||1);
+  const X=raw.map(row=>row.map((v,j)=>(v-fmean[j])/fsd[j]));
+  const ybar=train.reduce((s,r)=>s+r.y,0)/train.length;
+  const yc=train.map(r=>r.y-ybar),beta=Array(degree).fill(0);
+  for(let iter=0;iter<500;iter++){
+    for(let j=0;j<degree;j++){
+      let rho=0,zjj=0;
+      for(let i=0;i<X.length;i++){
+        let pred=0;
+        for(let k=0;k<degree;k++)if(k!==j)pred+=X[i][k]*beta[k];
+        const residual=yc[i]-pred;
+        rho+=X[i][j]*residual;
+        zjj+=X[i][j]*X[i][j];
+      }
+      rho/=X.length;zjj/=X.length;
+      beta[j]=softThreshold(rho,lambda)/(zjj||1);
+    }
+  }
+  const features=x=>{
+    const z=(x-mean)/sd,rr=Array.from({length:degree},(_,j)=>Math.pow(z,j+1));
+    return rr.map((v,j)=>(v-fmean[j])/fsd[j]);
+  };
+  const predict=x=>{const q=features(x);return ybar+q.reduce((s,v,j)=>s+v*beta[j],0);};
+  const tr=train.map(r=>predict(r.x)),te=test.map(r=>predict(r.x));
+  const trainMse=train.reduce((s,r,i)=>s+(r.y-tr[i])**2,0)/train.length;
+  const testMse=test.reduce((s,r,i)=>s+(r.y-te[i])**2,0)/test.length;
+  return {lambda,train,test,mean,sd,fmean,fsd,ybar,beta,predict,trainMse,testMse,nonzero:beta.filter(v=>Math.abs(v)>1e-5).length};
+}
+function drawL1Curve(f){
+  const cv=$("#l1Curve"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=52;
+  const sx=x=>p+((x-7)/(78-7))*(W-2*p),sy=y=>H-p-((y-45)/(92-45))*(H-2*p);
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle="#e3e8f0";ctx.lineWidth=1;
+  for(let x=10;x<=75;x+=10){ctx.beginPath();ctx.moveTo(sx(x),p);ctx.lineTo(sx(x),H-p);ctx.stroke();}
+  for(let y=50;y<=90;y+=10){ctx.beginPath();ctx.moveTo(p,sy(y));ctx.lineTo(W-p,sy(y));ctx.stroke();}
+  ctx.strokeStyle="#2563eb";ctx.lineWidth=4;ctx.beginPath();
+  for(let x=10;x<=75;x+=.15){const y=f.predict(x);if(x===10)ctx.moveTo(sx(x),sy(y));else ctx.lineTo(sx(x),sy(y));}
+  ctx.stroke();
+  f.train.forEach(r=>{ctx.fillStyle="#7c3aed";ctx.beginPath();ctx.arc(sx(r.x),sy(r.y),7,0,Math.PI*2);ctx.fill();});
+  f.test.forEach(r=>{ctx.fillStyle="#fff";ctx.strokeStyle="#c2410c";ctx.lineWidth=3;ctx.fillRect(sx(r.x)-6,sy(r.y)-6,12,12);ctx.strokeRect(sx(r.x)-6,sy(r.y)-6,12,12);});
+  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";ctx.fillText("Soil moisture (%) →",W-145,H-15);
+}
+function drawL1Coeffs(f){
+  const cv=$("#l1CoeffCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=45,max=Math.max(1,...f.beta.map(v=>Math.abs(v))),zeroY=H/2;
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle="#e3e8f0";ctx.beginPath();ctx.moveTo(p,zeroY);ctx.lineTo(W-p,zeroY);ctx.stroke();
+  const bw=(W-2*p)/f.beta.length*.62;
+  f.beta.forEach((v,i)=>{
+    const x=p+(i+.5)*(W-2*p)/f.beta.length,h=(Math.abs(v)/max)*(H*.34),y=v>=0?zeroY-h:zeroY;
+    ctx.fillStyle=Math.abs(v)<1e-5?"#cbd5e1":"#2563eb";ctx.fillRect(x-bw/2,y,bw,h);
+    ctx.fillStyle="#42516a";ctx.font="11px sans-serif";ctx.fillText("z^"+(i+1),x-10,H-18);
+  });
+  ctx.fillStyle="#42516a";ctx.font="12px sans-serif";ctx.fillText("0",18,zeroY+4);
+}
+function renderL1(){
+  const lambda=Number($("#l1Lambda").value),f=l1Fit(lambda);
+  $("#l1LambdaLabel").textContent=fmt(lambda,2);$("#l1LambdaMetric").textContent=fmt(lambda,2);$("#l1Nonzero").textContent=f.nonzero+" / 7";$("#l1TrainMse").textContent=fmt(f.trainMse,4);$("#l1TestMse").textContent=fmt(f.testMse,4);
+  $("#l1Math").innerHTML='Base model: degree-7 polynomial.<br><br>Without regularization:<br>minimize <b>(1/2n)Σ(Y−Ŷ)²</b><br><br>With L1:<br><b>J(β)=(1/2n)Σ(Y−Ŷ)² + λΣ|βⱼ|</b><br><br>Current λ = <b>'+fmt(lambda,2)+'</b><br>The coordinate-descent update uses soft-thresholding:<br><b>βⱼ ← S(ρⱼ,λ)/zⱼ</b><br><br>S(ρ,λ)=sign(ρ)·max(|ρ|−λ,0)<br><br>That final max(·,0) is why L1 can make coefficients <b>exactly zero</b>.';
+  $("#l1CoeffTable").innerHTML='<table class="tbl"><thead><tr><th>Polynomial feature</th><th>Coefficient</th><th>Status</th></tr></thead><tbody>'+f.beta.map((v,i)=>'<tr class="'+(Math.abs(v)<1e-5?"selected":"")+'"><td>z^'+(i+1)+'</td><td>'+fmt(v,6)+'</td><td>'+(Math.abs(v)<1e-5?"Zeroed by L1":"Retained")+'</td></tr>').join("")+'</tbody></table>';
+  drawL1Curve(f);drawL1Coeffs(f);
+}
+$("#l1Lambda").addEventListener("input",renderL1);
+$("#l1None").addEventListener("click",()=>{$("#l1Lambda").value=0;renderL1()});
+$("#l1Useful").addEventListener("click",()=>{$("#l1Lambda").value=.10;renderL1()});
+$("#l1Strong").addEventListener("click",()=>{$("#l1Lambda").value=1;renderL1()});
+renderL1();
 
 })();
 </script>
