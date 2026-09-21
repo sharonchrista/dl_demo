@@ -19,6 +19,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 .dt-tree-stage{overflow-x:auto;padding:12px}.dt-subtree{text-align:center;min-width:180px}.dt-tree-node{display:inline-block;min-width:165px;max-width:240px;border:2px solid var(--line);border-radius:12px;padding:9px 11px;background:#fff;box-shadow:0 4px 14px rgba(31,52,80,.06);font-size:.8rem;line-height:1.4}.dt-tree-node.split{border-color:#2563eb;background:#f7faff}.dt-tree-node.leaf-yes{border-color:#15803d;background:#eaf8ef}.dt-tree-node.leaf-no{border-color:#b42318;background:#feeceb}.dt-tree-node.pending{border-style:dashed;border-color:#f59e0b;background:#fffaf0}.dt-children{display:flex;justify-content:center;align-items:flex-start;gap:20px;margin-top:14px}.dt-branch{display:grid;gap:6px;justify-items:center}.dt-edge-label{font-size:.72rem;color:var(--muted);font-weight:800}.dt-tree-stage .math{display:inline-block;text-align:left}.rgb-note{font-size:.78rem;color:var(--muted)}@media(max-width:900px){.grid{grid-template-columns:1fr}.three,.two{grid-template-columns:1fr}.hero{flex-direction:column}.badge{white-space:normal}.app{padding:14px}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr}.tab{flex:1}.card{padding:13px}}
 </style>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
 <main class="app">
@@ -199,6 +200,13 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <div><h3>Decision boundary and support vectors</h3><canvas id="svmCanvas" width="700" height="440" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">Green = +1, red = −1. Ringed points are support vectors. Solid contour: f(x)=0. Dashed contours: f(x)=±1.</p></div>
 <div><h3>Current build stage</h3><div id="svmStageExplain" class="math"></div></div>
 </div></div>
+
+<div id="svm3DCard" class="card hide">
+<h3>3D kernel decision surface</h3>
+<p id="svm3DHint" class="hint"></p>
+<div id="svm3DPlot" style="width:100%;height:560px;border:1px solid var(--line);border-radius:10px"></div>
+<div class="callout" style="margin-top:10px"><b>How to read it:</b> the vertical axis is the decision score <b>f(x₁,x₂)</b>. The horizontal translucent plane is <b>f=0</b>. Where the curved surface crosses that plane is exactly the 2D decision boundary. Support vectors are emphasized because they determine the surface.</div>
+</div>
 
 <div class="card"><h3>Training dataset for the selected kernel</h3><div id="svmTable" class="tablewrap"></div></div>
 
@@ -859,6 +867,60 @@ function renderSvmKernelMath(){
  h+='<br><br>Contribution=(αy)K='+fmt(r.beta,6)+'×'+fmt(r.kv,6)+'=<b>'+fmt(r.contrib,6)+'</b>';
  $("#svmKernelMath").innerHTML=h;
 }
+function svm3DGrid(key,d){
+  const B=svmBounds(d),nx=35,ny=35,xs=[],ys=[],z=[];
+  for(let i=0;i<nx;i++)xs.push(B.xmin+(B.xmax-B.xmin)*i/(nx-1));
+  for(let j=0;j<ny;j++)ys.push(B.ymin+(B.ymax-B.ymin)*j/(ny-1));
+  for(let j=0;j<ny;j++){
+    const row=[];
+    for(let i=0;i<nx;i++)row.push(svmScoreRaw([xs[i],ys[j]],key));
+    z.push(row);
+  }
+  return {xs,ys,z,B};
+}
+function renderSvm3D(){
+  const key=$("#svmKernelChoice").value,d=svmDemos[key],step=Number($("#svmBuildStep").value),card=$("#svm3DCard");
+  if(key==="linear"){card.classList.add("hide");return;}
+  card.classList.remove("hide");
+  if(typeof Plotly==="undefined"){
+    $("#svm3DHint").innerHTML="3D renderer is loading. Refresh once if this panel remains blank.";
+    return;
+  }
+  if(step<5){
+    $("#svm3DHint").innerHTML="The 3D decision surface appears at Stage 5, after support vectors and the decision function have been established.";
+    Plotly.purge("svm3DPlot");
+    return;
+  }
+  $("#svm3DHint").innerHTML = key==="poly"
+    ? "Polynomial kernel: the curved surface shows f(x₁,x₂). This is a 3D decision-function view; the complete degree-2 feature expansion itself has more than three coordinates."
+    : "RBF kernel: the curved surface shows f(x₁,x₂). RBF feature space can be very high or infinite dimensional, so this decision-function surface is the correct 3D teaching view.";
+  const G=svm3DGrid(key,d),svSet=new Set(d.support);
+  const pos={x:[],y:[],z:[],text:[]},neg={x:[],y:[],z:[],text:[]},sv={x:[],y:[],z:[],text:[]};
+  d.X.forEach((x,i)=>{
+    const score=svmScoreRaw(x,key),label="x"+(i+1)+" · y="+d.y[i]+" · f="+fmt(score,3);
+    const bucket=d.y[i]>0?pos:neg;
+    bucket.x.push(x[0]);bucket.y.push(x[1]);bucket.z.push(score);bucket.text.push(label);
+    if(svSet.has(i)){sv.x.push(x[0]);sv.y.push(x[1]);sv.z.push(score);sv.text.push("Support vector "+label);}
+  });
+  const zero=G.ys.map(()=>G.xs.map(()=>0));
+  const plus=G.ys.map(()=>G.xs.map(()=>1));
+  const minus=G.ys.map(()=>G.xs.map(()=>-1));
+  const traces=[
+    {type:"surface",x:G.xs,y:G.ys,z:G.z,opacity:.76,showscale:false,name:"f(x₁,x₂)",hovertemplate:"x₁=%{x:.2f}<br>x₂=%{y:.2f}<br>f=%{z:.3f}<extra></extra>"},
+    {type:"surface",x:G.xs,y:G.ys,z:zero,opacity:.23,showscale:false,name:"f=0",hoverinfo:"skip"},
+    {type:"surface",x:G.xs,y:G.ys,z:plus,opacity:.08,showscale:false,name:"f=+1",hoverinfo:"skip"},
+    {type:"surface",x:G.xs,y:G.ys,z:minus,opacity:.08,showscale:false,name:"f=-1",hoverinfo:"skip"},
+    {type:"scatter3d",mode:"markers",x:pos.x,y:pos.y,z:pos.z,text:pos.text,name:"+1",hovertemplate:"%{text}<extra></extra>",marker:{size:5}},
+    {type:"scatter3d",mode:"markers",x:neg.x,y:neg.y,z:neg.z,text:neg.text,name:"-1",hovertemplate:"%{text}<extra></extra>",marker:{size:5}},
+    {type:"scatter3d",mode:"markers",x:sv.x,y:sv.y,z:sv.z,text:sv.text,name:"Support vectors",hovertemplate:"%{text}<extra></extra>",marker:{size:9,symbol:"diamond",line:{width:5}}}
+  ];
+  const layout={
+    margin:{l:0,r:0,t:25,b:0},height:560,paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+    legend:{orientation:"h",y:1.02},
+    scene:{xaxis:{title:"x₁"},yaxis:{title:"x₂"},zaxis:{title:"Decision score f(x₁,x₂)"},camera:{eye:{x:1.45,y:1.45,z:1.05}}}
+  };
+  Plotly.react("svm3DPlot",traces,layout,{responsive:true,displaylogo:false});
+}
 function renderSvm(){
  const key=$("#svmKernelChoice").value,d=svmDemos[key],step=Number($("#svmBuildStep").value),test=[Number($("#svmTestX1").value),Number($("#svmTestX2").value)],score=svmScoreRaw(test,key),alpha=svmAlphaMap(d),rows=svmSupportRows(key,d,test);
  $("#svmStageLabel").textContent=step+" / 6";$("#svmSvCount").textContent=step>=4?d.support.length+" / "+d.X.length:"–";$("#svmScore").textContent=step>=6?fmt(score,6):"–";$("#svmPred").textContent=step>=6?(score>=0?"+1":"−1"):"–";
@@ -876,7 +938,7 @@ function renderSvm(){
    extra='<br><br>For the linear kernel, w=Σ(αy)x = [<b>'+fmt(w[0],6)+', '+fmt(w[1],6)+'</b>]<br>Boundary: '+fmt(w[0],5)+'z₁ + '+fmt(w[1],5)+'z₂ + '+fmt(d.b,5)+' = 0';
  }
  $("#svmDecisionMath").innerHTML='<div class="kicker">Decision function</div><h3>How the boundary is found</h3><div class="math">f(x)=b+Σ<sub>support vectors</sub>(αᵢyᵢ)K(xᵢ,x)<br><br>Decision boundary: <b>f(x)=0</b><br>Margins: <b>f(x)=+1</b> and <b>f(x)=−1</b>'+extra+'<br><br>For test point ['+fmt(test[0])+', '+fmt(test[1])+']:<br>b='+fmt(d.b,6)+'<br>'+rows.map(r=>'x'+(r.idx+1)+': '+fmt(r.beta,6)+'×'+fmt(r.kv,6)+' = '+fmt(r.contrib,6)).join("<br>")+'<br><br>Σ contributions='+fmt(sum,6)+'<br>f(x)='+fmt(d.b,6)+'+'+fmt(sum,6)+'=<b>'+fmt(score,6)+'</b><br>Predicted Y=<b>'+(score>=0?"+1":"−1")+'</b></div>';
- drawSvm();renderSvmKernelMath();
+ drawSvm();renderSvmKernelMath();renderSvm3D();
 }
 function stopSvm(){if(svmTimer){clearInterval(svmTimer);svmTimer=null}$("#svmAutoBuild").textContent="▶ Build SVM"}
 function resetSvmForKernel(){
