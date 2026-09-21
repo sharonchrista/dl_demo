@@ -16,7 +16,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 .netwrap{overflow-x:auto}.net{min-width:620px;width:100%;height:auto}.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.78rem}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}.slider-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin-top:8px}.slider-row input{width:100%}
 .tablewrap{overflow-x:auto}.tbl{width:100%;border-collapse:collapse;font-size:.83rem}.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:8px 9px;text-align:right;white-space:nowrap}.tbl th:first-child,.tbl td:first-child{text-align:left}.tbl th{background:#f7f9fc;color:#42516a}.tbl tr.selected{background:#eef4ff}.tbl input{width:92px;border:1px solid var(--line);padding:6px;border-radius:6px;text-align:right}
 .matrix{display:grid;gap:4px}.cell{border:1px solid var(--line);border-radius:6px;text-align:center;padding:9px 4px;background:white;min-width:38px}.cell.hot{background:#fff1b8;border-color:#e5ab00;font-weight:850}.cell.out{background:#eaf1ff;border-color:#8ab0ff;font-weight:850}.cell.neg{background:#feeceb}.image-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;max-width:360px}.pixel{aspect-ratio:1;border:1px solid #cdd6e3;border-radius:5px;background:white;display:grid;place-items:center;font-size:.75rem}.pixel.on{background:#27364f;color:white}.pixel.focus{outline:3px solid #f59e0b;outline-offset:-3px}.kernel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:230px}.kernel-grid input{text-align:center;padding:8px;border:1px solid var(--line);border-radius:6px;width:100%}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.rnn-flow{overflow-x:auto}.flowline{display:flex;align-items:center;gap:8px;min-width:900px;padding:14px 4px}.node{width:105px;min-width:105px;text-align:center}.circle{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;margin:auto;border:3px solid #8aa9df;background:#f7faff;font-weight:850}.node.active .circle{border-color:#f59e0b;background:#fff7d6}.arrow{font-size:1.5rem;color:#7a879b}.under{font-size:.78rem;color:var(--muted);margin-top:6px}.footer{margin:24px 0 6px;color:var(--muted);font-size:.8rem;text-align:center}.hide{display:none!important}.tiny{font-size:.78rem}.status{font-size:.82rem;color:var(--muted);min-height:1.2em;margin-top:7px}.phase-pill{display:inline-block;border-radius:999px;padding:5px 9px;background:var(--blue2);color:#174ea6;font-size:.76rem;font-weight:850;margin-bottom:8px}.phase-pill.backward{background:var(--red2);color:var(--red)}.phase-pill.loss{background:var(--orange2);color:var(--orange)}
-@media(max-width:900px){.grid{grid-template-columns:1fr}.three,.two{grid-template-columns:1fr}.hero{flex-direction:column}.badge{white-space:normal}.app{padding:14px}.form-grid{grid-template-columns:1fr 1fr}}
+.rgb-note{font-size:.78rem;color:var(--muted)}@media(max-width:900px){.grid{grid-template-columns:1fr}.three,.two{grid-template-columns:1fr}.hero{flex-direction:column}.badge{white-space:normal}.app{padding:14px}.form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr}.tab{flex:1}.card{padding:13px}}
 </style>
 </head>
@@ -24,7 +24,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <main class="app">
 <header class="hero"><div><h1>Deep Learning Visual Lab</h1><p>Interactive classroom demonstrator for <b>ANN</b>, <b>CNN</b>, and <b>RNN</b>. The purpose is not to hide training behind a library call: every multiplication, addition, activation, loss term, gradient, and weight update is shown explicitly.</p></div><div class="badge">Teaching mode · detailed arithmetic</div></header>
 <nav class="tabs" aria-label="Lab sections">
-<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button>
+<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button>
 </nav>
 
 <section id="ann" class="panel active">
@@ -54,6 +54,23 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 </div>
 <div class="two" style="margin-top:14px"><div class="card"><h3>3 · Current convolution arithmetic</h3><div id="convMath" class="math"></div></div><div class="card"><h3>4 · Feature map → ReLU</h3><div id="featureMap" class="matrix"></div></div></div>
 <div class="two" style="margin-top:14px"><div class="card"><h3>5 · 2×2 pooling</h3><div id="poolMap" class="matrix"></div><div class="slider-row"><span>window</span><input id="poolStep" type="range" min="0" max="3" value="0"><span id="poolStepLabel">1/4</span></div><div id="poolMath" class="math" style="margin-top:10px"></div></div><div class="card"><h3>6 · Flatten → tiny 7-vs-9 classifier</h3><div id="classMath" class="math"></div><p class="hint">The convolution/pooling output is flattened and fed to a two-output softmax classifier.</p></div></div><div class="card" style="margin-top:14px"><h3>7 · CNN classifier training — fixed 5 epochs</h3><p class="hint">For clarity, the convolution and pooling feature extractor is held fixed while the final softmax weights learn from the selected digit. Each epoch shows the exact cross-entropy gradient update.</p><div class="metric-row"><div class="metric"><small>CNN epoch</small><strong id="cnnEpochLabel">1 / 5</strong></div><div class="metric"><small>Target class</small><strong id="cnnTarget">7</strong></div><div class="metric"><small>Cross-entropy loss</small><strong id="cnnLoss">–</strong></div></div><div class="controls"><button id="cnnRestart" class="secondary">Restart 5 epochs</button><button id="cnnPrev" class="secondary">← Previous epoch</button><button id="cnnNext" class="secondary">Next epoch →</button><button id="cnnAuto" class="secondary">▶ Auto 1→5</button><button id="cnnPause" class="secondary">⏸ Pause</button></div><div id="cnnEpochMath" class="math" style="margin-top:10px"></div><div id="cnnHistory" class="tablewrap" style="margin-top:10px"></div></div>
+</section>
+
+<section id="rgb" class="panel">
+<div class="card"><h2>RGB CNN visualization: tiny cat image</h2><p class="lead">This tab uses a small <b>8×8 RGB teaching image</b> shaped like a cat face. Each pixel has three values: R, G, and B. A single RGB convolution filter therefore has depth 3: <b>3×3×3 = 27 multiplications</b> for one output position.</p></div>
+<div class="three" style="margin-top:14px">
+<div class="card"><h3>1 · RGB cat image</h3><canvas id="rgbCat" width="256" height="256" style="width:100%;max-width:320px;border:1px solid var(--line);border-radius:10px;image-rendering:pixelated"></canvas><p class="hint">Click a pixel to inspect its exact RGB values.</p><div id="rgbPixelInfo" class="math"></div></div>
+<div class="card"><h3>2 · Separate channels</h3><div class="three"><div><b>R channel</b><canvas id="rCanvas" width="160" height="160" style="width:100%;image-rendering:pixelated;border:1px solid var(--line);border-radius:8px"></canvas></div><div><b>G channel</b><canvas id="gCanvas" width="160" height="160" style="width:100%;image-rendering:pixelated;border:1px solid var(--line);border-radius:8px"></canvas></div><div><b>B channel</b><canvas id="bCanvas" width="160" height="160" style="width:100%;image-rendering:pixelated;border:1px solid var(--line);border-radius:8px"></canvas></div></div><p class="hint">The same spatial pixel exists in all three channels, but with a different intensity.</p></div>
+<div class="card"><h3>3 · Convolution position</h3><div class="slider-row"><span>1</span><input id="rgbStep" type="range" min="0" max="35" value="0"><span>36</span></div><div class="controls"><button id="rgbPrev" class="secondary">← Previous</button><button id="rgbNext" class="secondary">Next →</button><button id="rgbAuto" class="secondary">▶ Animate</button><button id="rgbPause" class="secondary">⏸ Pause</button></div><div class="callout orange" style="margin-top:12px">Input 8×8, kernel 3×3, stride 1, no padding → output = <b>6×6</b>.</div></div>
+</div>
+<div class="two" style="margin-top:14px">
+<div class="card"><h3>4 · 3×3×3 filter arithmetic</h3><div id="rgbMath" class="math"></div></div>
+<div class="card"><h3>5 · Feature map after ReLU</h3><div id="rgbFeature" class="matrix"></div></div>
+</div>
+<div class="two" style="margin-top:14px">
+<div class="card"><h3>6 · 2×2 max pooling</h3><div id="rgbPool" class="matrix"></div><p class="hint">The 6×6 activation map becomes 3×3 after non-overlapping 2×2 max pooling.</p></div>
+<div class="card"><h3>What students should notice</h3><div class="math">For a grayscale image, one 3×3 kernel uses 9 multiplications.<br><br>For RGB, each spatial kernel position has one weight for R, one for G, and one for B:<br><br><b>3 × 3 × 3 = 27 multiplications</b><br><br>The three channel contributions are summed to produce <b>one</b> feature-map value.</div></div>
+</div>
 </section>
 
 <section id="rnn" class="panel">
@@ -217,6 +234,60 @@ $('#cnnNext').addEventListener('click',()=>{stopCnnEpochAuto();cnnEpoch=clamp(cn
 $('#cnnAuto').addEventListener('click',startCnnEpochAuto);$('#cnnPause').addEventListener('click',stopCnnEpochAuto);
 
 $('#digit').addEventListener('change',e=>{image=(e.target.value==='7'?p7:p9).map(r=>r.slice());cnnRender();trainCnn()});$('#poolType').addEventListener('change',()=>{cnnRender();trainCnn()});$('#convStep').addEventListener('input',cnnRender);$('#poolStep').addEventListener('input',cnnRender);$('#kernel').addEventListener('input',()=>{cnnRender();trainCnn()});$('#resetKernel').addEventListener('click',()=>{buildKernel();cnnRender();trainCnn()});$('#convPlay').addEventListener('click',()=>{if(timer){clearInterval(timer);timer=null;$('#convPlay').textContent='▶ Animate convolution'}else{let n=Number($('#convStep').value);if(n>=15){n=-1;$('#convStep').value=0;cnnRender()}timer=setInterval(()=>{n++;if(n>15){clearInterval(timer);timer=null;$('#convPlay').textContent='▶ Animate convolution';return}$('#convStep').value=n;cnnRender()},650);$('#convPlay').textContent='⏸ Pause'}});buildKernel();cnnRender();trainCnn();
+
+
+// RGB CNN cat demo
+const catRGB=[
+[[35,45,58],[35,45,58],[190,145,105],[35,45,58],[35,45,58],[190,145,105],[35,45,58],[35,45,58]],
+[[35,45,58],[190,145,105],[220,175,130],[190,145,105],[190,145,105],[220,175,130],[190,145,105],[35,45,58]],
+[[190,145,105],[220,175,130],[225,185,145],[220,175,130],[220,175,130],[225,185,145],[220,175,130],[190,145,105]],
+[[205,160,120],[225,185,145],[35,40,45],[230,190,150],[230,190,150],[35,40,45],[225,185,145],[205,160,120]],
+[[205,160,120],[225,185,145],[230,190,150],[120,75,60],[120,75,60],[230,190,150],[225,185,145],[205,160,120]],
+[[190,145,105],[215,170,130],[80,70,65],[220,180,140],[220,180,140],[80,70,65],[215,170,130],[190,145,105]],
+[[35,45,58],[190,145,105],[205,160,120],[205,160,120],[205,160,120],[205,160,120],[190,145,105],[35,45,58]],
+[[35,45,58],[35,45,58],[170,125,95],[190,145,105],[190,145,105],[170,125,95],[35,45,58],[35,45,58]]
+];
+const rgbKR=[[1,0,-1],[1,0,-1],[1,0,-1]],rgbKG=[[1,0,-1],[1,0,-1],[1,0,-1]],rgbKB=[[1,0,-1],[1,0,-1],[1,0,-1]];
+let rgbTimer=null,rgbSelected=[0,0];
+function drawRgbCanvas(canvas,mode='rgb',highlight=null){
+  const ctx=canvas.getContext('2d'),n=8,w=canvas.width/n,h=canvas.height/n;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let r=0;r<n;r++)for(let col=0;col<n;col++){
+    const p=catRGB[r][col];let rr=p[0],gg=p[1],bb=p[2];
+    if(mode==='r')gg=bb=rr;
+    if(mode==='g')rr=bb=gg;
+    if(mode==='b')rr=gg=bb;
+    ctx.fillStyle='rgb('+rr+','+gg+','+bb+')';ctx.fillRect(col*w,r*h,w,h);
+    ctx.strokeStyle='rgba(255,255,255,.18)';ctx.strokeRect(col*w,r*h,w,h);
+  }
+  if(highlight){ctx.strokeStyle='#f59e0b';ctx.lineWidth=5;ctx.strokeRect(highlight[1]*w,highlight[0]*h,3*w,3*h);}
+}
+function rgbCompute(){
+  const fm=Array.from({length:6},()=>Array(6).fill(0));
+  for(let r=0;r<6;r++)for(let c2=0;c2<6;c2++)for(let a=0;a<3;a++)for(let b=0;b<3;b++){
+    const p=catRGB[r+a][c2+b];fm[r][c2]+=p[0]*rgbKR[a][b]+p[1]*rgbKG[a][b]+p[2]*rgbKB[a][b];
+  }
+  const relu=fm.map(row=>row.map(v=>Math.max(0,v))),pool=Array.from({length:3},()=>Array(3).fill(0));
+  for(let pr=0;pr<3;pr++)for(let pc=0;pc<3;pc++){const vals=[relu[pr*2][pc*2],relu[pr*2][pc*2+1],relu[pr*2+1][pc*2],relu[pr*2+1][pc*2+1]];pool[pr][pc]=Math.max(...vals);}
+  return {fm,relu,pool};
+}
+function renderRgb(){
+  const step=Number($('#rgbStep').value),rr=Math.floor(step/6),cc=step%6,res=rgbCompute();
+  drawRgbCanvas($('#rgbCat'),'rgb',[rr,cc]);drawRgbCanvas($('#rCanvas'),'r');drawRgbCanvas($('#gCanvas'),'g');drawRgbCanvas($('#bCanvas'),'b');
+  const termsR=[],termsG=[],termsB=[];
+  for(let a=0;a<3;a++)for(let b=0;b<3;b++){const p=catRGB[rr+a][cc+b];termsR.push(p[0]+'×'+rgbKR[a][b]);termsG.push(p[1]+'×'+rgbKG[a][b]);termsB.push(p[2]+'×'+rgbKB[a][b]);}
+  const sumR=termsR.reduce((s,t)=>{const q=t.split('×');return s+Number(q[0])*Number(q[1])},0),sumG=termsG.reduce((s,t)=>{const q=t.split('×');return s+Number(q[0])*Number(q[1])},0),sumB=termsB.reduce((s,t)=>{const q=t.split('×');return s+Number(q[0])*Number(q[1])},0),total=sumR+sumG+sumB;
+  $('#rgbMath').innerHTML='Window top-left: row '+(rr+1)+', col '+(cc+1)+'<br><br><b>R channel:</b><br>'+termsR.join(' + ')+' = '+sumR+'<br><br><b>G channel:</b><br>'+termsG.join(' + ')+' = '+sumG+'<br><br><b>B channel:</b><br>'+termsB.join(' + ')+' = '+sumB+'<br><br>Total convolution = '+sumR+' + '+sumG+' + '+sumB+' = <b>'+total+'</b><br>ReLU = max(0,'+total+') = <b>'+Math.max(0,total)+'</b>';
+  $('#rgbFeature').innerHTML=matrixHTML(res.relu,rr,cc);
+  $('#rgbPool').innerHTML=matrixHTML(res.pool);
+}
+$('#rgbCat').addEventListener('click',e=>{const rect=e.target.getBoundingClientRect(),c2=clamp(Math.floor((e.clientX-rect.left)/(rect.width/8)),0,7),r=clamp(Math.floor((e.clientY-rect.top)/(rect.height/8)),0,7),p=catRGB[r][c2];rgbSelected=[r,c2];$('#rgbPixelInfo').innerHTML='Pixel (row '+(r+1)+', col '+(c2+1)+')<br>R = <b>'+p[0]+'</b><br>G = <b>'+p[1]+'</b><br>B = <b>'+p[2]+'</b><br>Normalized ≈ ('+fmt(p[0]/255,3)+', '+fmt(p[1]/255,3)+', '+fmt(p[2]/255,3)+')';});
+$('#rgbStep').addEventListener('input',renderRgb);
+$('#rgbPrev').addEventListener('click',()=>{$('#rgbStep').value=clamp(Number($('#rgbStep').value)-1,0,35);renderRgb()});
+$('#rgbNext').addEventListener('click',()=>{$('#rgbStep').value=clamp(Number($('#rgbStep').value)+1,0,35);renderRgb()});
+$('#rgbAuto').addEventListener('click',()=>{if(rgbTimer)return;if(Number($('#rgbStep').value)>=35)$('#rgbStep').value=0;$('#rgbAuto').textContent='Running…';rgbTimer=setInterval(()=>{let s=Number($('#rgbStep').value);if(s>=35){clearInterval(rgbTimer);rgbTimer=null;$('#rgbAuto').textContent='▶ Animate';return;}$('#rgbStep').value=s+1;renderRgb()},700)});
+$('#rgbPause').addEventListener('click',()=>{if(rgbTimer){clearInterval(rgbTimer);rgbTimer=null}$('#rgbAuto').textContent='▶ Animate'});
+renderRgb();$('#rgbPixelInfo').innerHTML='Click any cat pixel to inspect R, G, and B values.';
 
 // RNN: six rows as one sequence, BPTT and epochs
 const rowLabels=['Sensor reading A','Sensor reading B','Sensor reading C','Sensor reading D','Sensor reading E','Sensor reading F'],rnnDefaults=[0.20,0.70,0.40,0.90,0.60,0.85];let rnnHist=[];
