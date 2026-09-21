@@ -24,7 +24,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <main class="app">
 <header class="hero"><div><h1>Deep Learning Visual Lab</h1><p>Interactive classroom demonstrator for <b>ANN</b>, <b>CNN</b>, and <b>RNN</b>. The purpose is not to hide training behind a library call: every multiplication, addition, activation, loss term, gradient, and weight update is shown explicitly.</p></div><div class="badge">Teaching mode · detailed arithmetic</div></header>
 <nav class="tabs" aria-label="Lab sections">
-<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button>
+<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button>
 </nav>
 
 <section id="ann" class="panel active">
@@ -71,6 +71,18 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <div class="card"><h3>6 · 2×2 max pooling</h3><div id="rgbPool" class="matrix"></div><p class="hint">The 6×6 activation map becomes 3×3 after non-overlapping 2×2 max pooling.</p></div>
 <div class="card"><h3>What students should notice</h3><div class="math">For a grayscale image, one 3×3 kernel uses 9 multiplications.<br><br>For RGB, each spatial kernel position has one weight for R, one for G, and one for B:<br><br><b>3 × 3 × 3 = 27 multiplications</b><br><br>The three channel contributions are summed to produce <b>one</b> feature-map value.</div></div>
 </div>
+</section>
+
+<section id="lstm" class="panel">
+<div class="grid">
+<aside class="card"><h2>LSTM teaching demo</h2><p class="hint">A six-step scalar sequence is passed through one LSTM cell repeatedly. The same gate weights are reused at every time step.</p><div class="form-grid"><label class="field">Target y<input id="lstmTarget" type="number" min="0" max="1" step="1" value="1"></label><div class="field">Epochs<div class="math tiny">Fixed: 5 epochs</div></div></div><button id="lstmRestart" class="primary">Restart LSTM demo</button><div class="callout green" style="margin-top:12px"><b>Core equations</b><br>fₜ=σ(Wf·[hₜ₋₁,xₜ]+bf)<br>iₜ=σ(Wi·[hₜ₋₁,xₜ]+bi)<br>gₜ=tanh(Wg·[hₜ₋₁,xₜ]+bg)<br>cₜ=fₜcₜ₋₁+iₜgₜ<br>oₜ=σ(Wo·[hₜ₋₁,xₜ]+bo)<br>hₜ=oₜtanh(cₜ)</div></aside>
+<div class="stack">
+<div class="card"><h3>6-step input sequence</h3><div class="tablewrap"><table class="tbl"><thead><tr><th>t</th><th>xₜ</th><th>fₜ</th><th>iₜ</th><th>gₜ</th><th>cₜ</th><th>oₜ</th><th>hₜ</th></tr></thead><tbody id="lstmTable"></tbody></table></div></div>
+<div class="card"><div class="metric-row"><div class="metric"><small>Epoch</small><strong id="lstmEpochLabel">1 / 5</strong></div><div class="metric"><small>Time step</small><strong id="lstmTimeLabel">t = 1</strong></div><div class="metric"><small>Prediction ŷ</small><strong id="lstmPred">–</strong></div><div class="metric"><small>Loss</small><strong id="lstmLoss">–</strong></div></div><div class="slider-row"><span>epoch</span><input id="lstmEpoch" type="range" min="1" max="5" value="1"><span>5</span></div><div class="slider-row"><span>t=1</span><input id="lstmTime" type="range" min="0" max="5" value="0"><span>t=6</span></div><div class="controls"><button id="lstmPrev" class="secondary">← Previous step</button><button id="lstmNext" class="secondary">Next step →</button><button id="lstmAuto" class="secondary">▶ Auto</button><button id="lstmPause" class="secondary">⏸ Pause</button></div></div>
+<div id="lstmFlow" class="card"></div>
+<div id="lstmCalc" class="card"></div>
+<div id="lstmTrain" class="card"></div>
+</div></div>
 </section>
 
 <section id="rnn" class="panel">
@@ -311,6 +323,51 @@ $('#rgbNext').addEventListener('click',()=>{$('#rgbStep').value=clamp(Number($('
 $('#rgbAuto').addEventListener('click',()=>{if(rgbTimer)return;if(Number($('#rgbStep').value)>=35)$('#rgbStep').value=0;$('#rgbAuto').textContent='Running…';rgbTimer=setInterval(()=>{let s=Number($('#rgbStep').value);if(s>=35){clearInterval(rgbTimer);rgbTimer=null;$('#rgbAuto').textContent='▶ Animate';return;}$('#rgbStep').value=s+1;renderRgb()},700)});
 $('#rgbPause').addEventListener('click',()=>{if(rgbTimer){clearInterval(rgbTimer);rgbTimer=null}$('#rgbAuto').textContent='▶ Animate'});
 renderRgb();$('#rgbPixelInfo').innerHTML='Click any cat pixel to inspect R, G, and B values.';
+
+
+// LSTM demo
+const lstmX=[0.20,0.70,0.40,0.90,0.60,0.85];
+const lstmW={f:[0.7,-0.4],bf:0.1,i:[-0.3,0.8],bi:-0.05,g:[0.6,0.5],bg:0,o:[0.4,0.7],bo:0.02};
+let lstmHist=[],lstmTimer=null;
+function lstmForward(wy,by,target){
+  let h=0,cell=0,steps=[];
+  for(let t=0;t<6;t++){
+    const x=lstmX[t],hp=h,cp=cell;
+    const zf=lstmW.f[0]*hp+lstmW.f[1]*x+lstmW.bf,f=sigmoid(zf);
+    const zi=lstmW.i[0]*hp+lstmW.i[1]*x+lstmW.bi,ig=sigmoid(zi);
+    const zg=lstmW.g[0]*hp+lstmW.g[1]*x+lstmW.bg,g=Math.tanh(zg);
+    cell=f*cp+ig*g;
+    const zo=lstmW.o[0]*hp+lstmW.o[1]*x+lstmW.bo,o=sigmoid(zo);
+    h=o*Math.tanh(cell);
+    steps.push({t,x,hp,cp,zf,f,zi,ig,zg,g,cell,zo,o,h});
+  }
+  const zout=wy*h+by,p=sigmoid(zout),loss=.5*(p-target)*(p-target),d=(p-target)*p*(1-p);
+  return {steps,zout,p,loss,d,h6:h};
+}
+function trainLstm(){
+  const target=Number($('#lstmTarget').value),lr=.3;let wy=.65,by=-.08;lstmHist=[];
+  for(let e=1;e<=5;e++){const old={wy,by},r=lstmForward(wy,by,target),gwy=r.h6*r.d,gby=r.d;wy-=lr*gwy;by-=lr*gby;lstmHist.push({e,target,lr,old,...r,gwy,gby,nw:{wy,by}});}
+  $('#lstmEpoch').value=1;$('#lstmTime').value=0;renderLstm();
+}
+function renderLstm(){
+  const e=Number($('#lstmEpoch').value),t=Number($('#lstmTime').value),r=lstmHist[e-1],s=r.steps[t];
+  $('#lstmEpochLabel').textContent=e+' / 5';$('#lstmTimeLabel').textContent='t = '+(t+1);$('#lstmPred').textContent=fmt(r.p);$('#lstmLoss').textContent=fmt(r.loss);
+  $('#lstmTable').innerHTML=r.steps.map((q,i)=>'<tr class="'+(i===t?'selected':'')+'"><td>'+(i+1)+'</td><td>'+fmt(q.x,3)+'</td><td>'+fmt(q.f,3)+'</td><td>'+fmt(q.ig,3)+'</td><td>'+fmt(q.g,3)+'</td><td>'+fmt(q.cell,3)+'</td><td>'+fmt(q.o,3)+'</td><td>'+fmt(q.h,3)+'</td></tr>').join('');
+  $('#lstmFlow').innerHTML='<h3>LSTM flow at t='+(t+1)+'</h3><div class="flowline" style="min-width:780px"><div class="node"><div class="circle">xₜ<br>'+fmt(s.x,3)+'</div><div class="under">input</div></div><div class="arrow">→</div><div class="node"><div class="circle" style="border-color:#c2410c">fₜ<br>'+fmt(s.f,3)+'</div><div class="under">forget gate</div></div><div class="arrow">→</div><div class="node"><div class="circle" style="border-color:#7c3aed">iₜ,gₜ<br>'+fmt(s.ig,2)+','+fmt(s.g,2)+'</div><div class="under">write candidate</div></div><div class="arrow">→</div><div class="node"><div class="circle" style="border-color:#2563eb">cₜ<br>'+fmt(s.cell,3)+'</div><div class="under">cell memory</div></div><div class="arrow">→</div><div class="node"><div class="circle" style="border-color:#15803d">oₜ<br>'+fmt(s.o,3)+'</div><div class="under">output gate</div></div><div class="arrow">→</div><div class="node"><div class="circle">hₜ<br>'+fmt(s.h,3)+'</div><div class="under">hidden state</div></div></div>';
+  $('#lstmCalc').innerHTML='<div class="kicker">Epoch '+e+' · time step '+(t+1)+'</div><h3>Gate-by-gate calculation</h3><div class="math"><b>Forget gate</b><br>z_f = '+fmt(lstmW.f[0])+'×'+fmt(s.hp)+' + '+fmt(lstmW.f[1])+'×'+fmt(s.x)+' + '+fmt(lstmW.bf)+' = '+fmt(s.zf)+'<br>fₜ = σ(z_f) = <b>'+fmt(s.f)+'</b><br><br><b>Input gate</b><br>z_i = '+fmt(lstmW.i[0])+'×'+fmt(s.hp)+' + '+fmt(lstmW.i[1])+'×'+fmt(s.x)+' + '+fmt(lstmW.bi)+' = '+fmt(s.zi)+'<br>iₜ = σ(z_i) = <b>'+fmt(s.ig)+'</b><br><br><b>Candidate memory</b><br>z_g = '+fmt(lstmW.g[0])+'×'+fmt(s.hp)+' + '+fmt(lstmW.g[1])+'×'+fmt(s.x)+' + '+fmt(lstmW.bg)+' = '+fmt(s.zg)+'<br>gₜ = tanh(z_g) = <b>'+fmt(s.g)+'</b><br><br><b>Cell-state update</b><br>cₜ = fₜcₜ₋₁ + iₜgₜ<br>= '+fmt(s.f)+'×'+fmt(s.cp)+' + '+fmt(s.ig)+'×'+fmt(s.g)+' = <b>'+fmt(s.cell)+'</b><br><br><b>Output gate</b><br>z_o = '+fmt(lstmW.o[0])+'×'+fmt(s.hp)+' + '+fmt(lstmW.o[1])+'×'+fmt(s.x)+' + '+fmt(lstmW.bo)+' = '+fmt(s.zo)+'<br>oₜ = σ(z_o) = <b>'+fmt(s.o)+'</b><br><br><b>Hidden state</b><br>hₜ = oₜ × tanh(cₜ) = '+fmt(s.o)+' × tanh('+fmt(s.cell)+') = <b>'+fmt(s.h)+'</b></div>';
+  $('#lstmTrain').innerHTML='<h3>5-epoch output-layer training</h3><div class="math">After t=6: z = Wᵧh₆ + bᵧ = '+fmt(r.old.wy)+'×'+fmt(r.h6)+' + '+fmt(r.old.by)+' = '+fmt(r.zout)+'<br>ŷ = sigmoid(z) = <b>'+fmt(r.p)+'</b><br>Loss = ½(ŷ−y)² = <b>'+fmt(r.loss)+'</b><br><br>δ = (ŷ−y)ŷ(1−ŷ) = <b>'+fmt(r.d)+'</b><br>∂L/∂Wᵧ = h₆δ = '+fmt(r.h6)+'×'+fmt(r.d)+' = <b>'+fmt(r.gwy)+'</b><br><br>Wᵧ(new) = '+fmt(r.old.wy)+' − '+fmt(r.lr)+'×('+fmt(r.gwy)+') = <b>'+fmt(r.nw.wy)+'</b><br>bᵧ(new) = '+fmt(r.old.by)+' − '+fmt(r.lr)+'×('+fmt(r.gby)+') = <b>'+fmt(r.nw.by)+'</b></div><div class="tablewrap" style="margin-top:10px"><table class="tbl"><thead><tr><th>Epoch</th><th>ŷ</th><th>Loss</th><th>Wᵧ</th></tr></thead><tbody>'+lstmHist.map(q=>'<tr class="'+(q.e===e?'selected':'')+'"><td>'+q.e+'</td><td>'+fmt(q.p)+'</td><td>'+fmt(q.loss)+'</td><td>'+fmt(q.nw.wy)+'</td></tr>').join('')+'</tbody></table></div>';
+}
+function lstmAdvance(){let e=Number($('#lstmEpoch').value),t=Number($('#lstmTime').value);if(t<5)t++;else if(e<5){e++;t=0}else return false;$('#lstmEpoch').value=e;$('#lstmTime').value=t;renderLstm();return true;}
+function stopLstm(){if(lstmTimer){clearInterval(lstmTimer);lstmTimer=null}$('#lstmAuto').textContent='▶ Auto';}
+$('#lstmRestart').addEventListener('click',()=>{stopLstm();trainLstm()});
+$('#lstmEpoch').addEventListener('input',()=>{$('#lstmTime').value=0;stopLstm();renderLstm()});
+$('#lstmTime').addEventListener('input',()=>{stopLstm();renderLstm()});
+$('#lstmPrev').addEventListener('click',()=>{stopLstm();let e=Number($('#lstmEpoch').value),t=Number($('#lstmTime').value);if(t>0)t--;else if(e>1){e--;t=5}$('#lstmEpoch').value=e;$('#lstmTime').value=t;renderLstm()});
+$('#lstmNext').addEventListener('click',()=>{stopLstm();lstmAdvance()});
+$('#lstmAuto').addEventListener('click',()=>{if(lstmTimer)return;if(Number($('#lstmEpoch').value)===5&&Number($('#lstmTime').value)===5){$('#lstmEpoch').value=1;$('#lstmTime').value=0;renderLstm()}$('#lstmAuto').textContent='Running…';lstmTimer=setInterval(()=>{if(!lstmAdvance())stopLstm()},850)});
+$('#lstmPause').addEventListener('click',stopLstm);
+trainLstm();
+
 
 // RNN: six rows as one sequence, BPTT and epochs
 const rowLabels=['Sensor reading A','Sensor reading B','Sensor reading C','Sensor reading D','Sensor reading E','Sensor reading F'],rnnDefaults=[0.20,0.70,0.40,0.90,0.60,0.85];let rnnHist=[];
