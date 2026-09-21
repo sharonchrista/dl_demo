@@ -110,12 +110,18 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 
 <section id="dtree" class="panel">
 <div class="grid">
-<aside class="card"><h2>Decision Tree Visual Lab</h2><p class="hint">This classification example chooses a split by minimizing weighted Gini impurity.</p><div class="callout green"><b>Gini impurity</b><br>Gini = 1 − Σ pₖ²<br><br><b>Weighted split impurity</b><br>(nL/n)Gini(L) + (nR/n)Gini(R)</div><label class="field" style="margin-top:12px">Candidate split<select id="dtCandidate"></select></label><button id="dtBest" class="primary">Jump to best split</button></aside>
+<aside class="card"><h2>Decision Tree: Loves Batman?</h2><p class="hint">Target: <b>Loves Batman</b>. Candidate predictors: <b>Age</b>, <b>Loves Movies</b>, and <b>Loves Cartoons</b>.</p>
+<div class="callout green"><b>Choose split criterion</b><div class="controls" style="margin-top:8px"><button id="dtGiniBtn" class="secondary">Gini Impurity</button><button id="dtEntropyBtn" class="secondary">Entropy / Information Gain</button></div></div>
+<div id="dtFormula" class="math" style="margin-top:10px"></div>
+<label class="field" style="margin-top:12px">Candidate split<select id="dtCandidate"></select></label>
+<button id="dtBest" class="primary">Jump to best split</button>
+</aside>
 <div class="stack">
-<div class="card"><div class="two"><div><h3>Dataset and candidate boundary</h3><canvas id="dtCanvas" width="620" height="360" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas></div><div><h3>Training rows</h3><div id="dtData" class="tablewrap"></div></div></div></div>
+<div class="card"><h3>12-row training dataset</h3><p class="hint">1 = Yes/True, 0 = No/False.</p><div id="dtData" class="tablewrap"></div></div>
+<div class="card"><div class="two"><div><h3>Selected split visualization</h3><canvas id="dtCanvas" width="640" height="360" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas></div><div><h3>Current split summary</h3><div id="dtSplitSummary"></div></div></div></div>
 <div id="dtMath" class="card"></div>
-<div class="card"><h3>All candidate splits</h3><div id="dtRanking" class="tablewrap"></div></div>
-<div class="card"><h3>Resulting first-level tree</h3><div id="dtTree"></div></div>
+<div class="card"><h3>All candidate splits ranked by gain</h3><div id="dtRanking" class="tablewrap"></div></div>
+<div class="card"><h3>Best first-level tree for selected criterion</h3><div id="dtTree"></div></div>
 </div></div>
 </section>
 
@@ -494,46 +500,188 @@ $('#lrEpoch').addEventListener('input',()=>{stopLr();renderLr()});$('#lrPrev').a
 $('#lrClosed').addEventListener('click',()=>{$('#lrMath').scrollIntoView({behavior:'smooth',block:'center'})});
 $('#lrGdAuto').addEventListener('click',()=>{if(lrTimer)return;let e=Number($('#lrEpoch').value);if(e>=5)e=0;lrTimer=setInterval(()=>{e++;$('#lrEpoch').value=e;renderLr();if(e>=5)stopLr()},1050)});$('#lrGdPause').addEventListener('click',stopLr);
 
-// Decision Tree
-const dtRows=[
- {h:1,a:55,y:0},{h:2,a:80,y:0},{h:3,a:65,y:0},{h:4,a:60,y:1},
- {h:5,a:75,y:1},{h:6,a:85,y:1},{h:7,a:70,y:1},{h:8,a:92,y:1}
+
+// Decision Tree — Age / Movies / Cartoons -> Loves Batman
+const dtRows = [
+  {id:1,age:45,movies:1,cartoons:0,batman:1},
+  {id:2,age:20,movies:1,cartoons:0,batman:1},
+  {id:3,age:39,movies:1,cartoons:0,batman:1},
+  {id:4,age:6,movies:0,cartoons:1,batman:1},
+  {id:5,age:43,movies:1,cartoons:0,batman:0},
+  {id:6,age:39,movies:1,cartoons:0,batman:1},
+  {id:7,age:22,movies:1,cartoons:1,batman:0},
+  {id:8,age:15,movies:1,cartoons:1,batman:1},
+  {id:9,age:26,movies:1,cartoons:0,batman:1},
+  {id:10,age:7,movies:1,cartoons:1,batman:1},
+  {id:11,age:29,movies:1,cartoons:0,batman:1},
+  {id:12,age:41,movies:1,cartoons:0,batman:0}
 ];
-let dtCandidates=[];
-function gini(labels){if(!labels.length)return 0;const p=labels.reduce((s,v)=>s+v,0)/labels.length;return 1-p*p-(1-p)*(1-p)}
+let dtCriterion = "gini";
+let dtCandidates = [];
+
+function dtGini(labels){
+  if(!labels.length) return 0;
+  const yes = labels.reduce((s,v)=>s+v,0);
+  const p1 = yes/labels.length, p0 = 1-p1;
+  return 1-p1*p1-p0*p0;
+}
+function dtEntropy(labels){
+  if(!labels.length) return 0;
+  const yes = labels.reduce((s,v)=>s+v,0);
+  const p1 = yes/labels.length, p0 = 1-p1;
+  const h = p => p===0 ? 0 : -p*Math.log2(p);
+  return h(p1)+h(p0);
+}
+function dtImpurity(labels){ return dtCriterion==="gini" ? dtGini(labels) : dtEntropy(labels); }
+function dtCriterionName(){ return dtCriterion==="gini" ? "Gini impurity" : "Entropy"; }
+function dtGainName(){ return dtCriterion==="gini" ? "Gini reduction" : "Information gain"; }
+function dtSplitLabel(q){ return q.key==="age" ? "Age ≤ "+fmt(q.th,1) : q.name+" = 0 vs 1"; }
+
 function buildDtCandidates(){
-  dtCandidates=[];
-  [['h','Study hours'],['a','Attendance']].forEach(([key,name])=>{
-    const vals=[...new Set(dtRows.map(r=>r[key]))].sort((a,b)=>a-b);
-    for(let i=0;i<vals.length-1;i++){
-      const th=(vals[i]+vals[i+1])/2,left=dtRows.filter(r=>r[key]<=th),right=dtRows.filter(r=>r[key]>th);
-      const gl=gini(left.map(r=>r.y)),gr=gini(right.map(r=>r.y)),wg=(left.length/dtRows.length)*gl+(right.length/dtRows.length)*gr,parent=gini(dtRows.map(r=>r.y));
-      dtCandidates.push({key,name,th,left,right,gl,gr,wg,gain:parent-wg});
-    }
+  dtCandidates = [];
+  const parent = dtImpurity(dtRows.map(r=>r.batman));
+  const ages = [...new Set(dtRows.map(r=>r.age))].sort((a,b)=>a-b);
+
+  for(let i=0;i<ages.length-1;i++){
+    const th = (ages[i]+ages[i+1])/2;
+    const left = dtRows.filter(r=>r.age<=th);
+    const right = dtRows.filter(r=>r.age>th);
+    const il = dtImpurity(left.map(r=>r.batman));
+    const ir = dtImpurity(right.map(r=>r.batman));
+    const weighted = (left.length/dtRows.length)*il + (right.length/dtRows.length)*ir;
+    dtCandidates.push({key:"age",name:"Age",th,left,right,il,ir,weighted,gain:parent-weighted});
+  }
+
+  [["movies","Loves Movies"],["cartoons","Loves Cartoons"]].forEach(pair=>{
+    const key = pair[0], name = pair[1];
+    const left = dtRows.filter(r=>r[key]===0);
+    const right = dtRows.filter(r=>r[key]===1);
+    const il = dtImpurity(left.map(r=>r.batman));
+    const ir = dtImpurity(right.map(r=>r.batman));
+    const weighted = (left.length/dtRows.length)*il + (right.length/dtRows.length)*ir;
+    dtCandidates.push({key,name,th:0.5,left,right,il,ir,weighted,gain:parent-weighted});
   });
+
   dtCandidates.sort((a,b)=>b.gain-a.gain);
-  $('#dtCandidate').innerHTML=dtCandidates.map((q,i)=>'<option value="'+i+'">'+q.name+' ≤ '+fmt(q.th,2)+'</option>').join('');
+  $("#dtCandidate").innerHTML = dtCandidates.map((q,i)=>'<option value="'+i+'">'+dtSplitLabel(q)+'</option>').join("");
 }
+
+function dtCounts(rows){
+  const yes = rows.filter(r=>r.batman===1).length;
+  return {n:rows.length,yes,no:rows.length-yes,majority:yes>=rows.length-yes?1:0};
+}
+
+function dtFormulaFor(labels){
+  const yes = labels.reduce((s,v)=>s+v,0), no = labels.length-yes, n = labels.length;
+  if(dtCriterion==="gini") return "1 − ("+yes+"/"+n+")² − ("+no+"/"+n+")²";
+  const a = yes===0 ? "0" : "−("+yes+"/"+n+")log₂("+yes+"/"+n+")";
+  const bb = no===0 ? "0" : "−("+no+"/"+n+")log₂("+no+"/"+n+")";
+  return a+" + "+bb;
+}
+
 function drawDt(q){
-  const cv=$('#dtCanvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height,p=45,sx=x=>p+(x/9)*(W-2*p),sy=y=>H-p-((y-50)/50)*(H-2*p);
-  ctx.clearRect(0,0,W,H);ctx.strokeStyle='#dce3ee';for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(p,p+i*(H-2*p)/5);ctx.lineTo(W-p,p+i*(H-2*p)/5);ctx.stroke();}
-  dtRows.forEach(r=>{ctx.fillStyle=r.y?'#15803d':'#b42318';ctx.beginPath();ctx.arc(sx(r.h),sy(r.a),7,0,Math.PI*2);ctx.fill();});
-  ctx.strokeStyle='#2563eb';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();if(q.key==='h'){ctx.moveTo(sx(q.th),p);ctx.lineTo(sx(q.th),H-p)}else{ctx.moveTo(p,sy(q.th));ctx.lineTo(W-p,sy(q.th))}ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle='#42516a';ctx.font='13px sans-serif';ctx.fillText('Study hours',W-110,H-15);ctx.save();ctx.translate(15,H/2+40);ctx.rotate(-Math.PI/2);ctx.fillText('Attendance',0,0);ctx.restore();
+  const cv=$("#dtCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=54;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle="#e3e8f0";ctx.lineWidth=1;
+  const yNo=H-p-55, yYes=p+55;
+  ctx.beginPath();ctx.moveTo(p,yNo);ctx.lineTo(W-p,yNo);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(p,yYes);ctx.lineTo(W-p,yYes);ctx.stroke();
+  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";
+  ctx.fillText("Batman = 0 (No)",8,yNo+5);
+  ctx.fillText("Batman = 1 (Yes)",8,yYes+5);
+
+  let sx,label;
+  if(q.key==="age"){
+    sx = v => p+((v-4)/(47-4))*(W-2*p);
+    label = "Age";
+  }else{
+    sx = v => p+110+v*(W-2*p-220);
+    label = q.name+" (0 / 1)";
+  }
+
+  dtRows.forEach((r,i)=>{
+    const xv = q.key==="age" ? r.age : r[q.key];
+    const yv = r.batman ? yYes : yNo;
+    const jitter = ((i%3)-1)*7;
+    ctx.fillStyle = r.batman ? "#15803d" : "#b42318";
+    ctx.beginPath();ctx.arc(sx(xv),yv+jitter,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#42516a";ctx.font="10px sans-serif";
+    ctx.fillText(String(r.id),sx(xv)+8,yv+jitter-8);
+  });
+
+  ctx.strokeStyle="#2563eb";ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();
+  const bx = q.key==="age" ? sx(q.th) : (sx(0)+sx(1))/2;
+  ctx.moveTo(bx,p);ctx.lineTo(bx,H-p);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";
+  ctx.fillText(label,W/2-40,H-16);
 }
+
+function setDtCriterion(which){
+  dtCriterion = which;
+  $("#dtGiniBtn").style.background = which==="gini" ? "var(--blue)" : "white";
+  $("#dtGiniBtn").style.color = which==="gini" ? "white" : "var(--ink)";
+  $("#dtEntropyBtn").style.background = which==="entropy" ? "var(--blue)" : "white";
+  $("#dtEntropyBtn").style.color = which==="entropy" ? "white" : "var(--ink)";
+  $("#dtFormula").innerHTML = which==="gini"
+    ? "<b>Gini = 1 − Σpₖ²</b><br>Split gain = Gini(parent) − weighted Gini(children)."
+    : "<b>Entropy = −Σpₖlog₂(pₖ)</b><br>Information Gain = Entropy(parent) − weighted Entropy(children).";
+  buildDtCandidates();
+  $("#dtCandidate").value=0;
+  renderDt();
+}
+
 function renderDt(){
-  const idx=Number($('#dtCandidate').value)||0,q=dtCandidates[idx],parent=gini(dtRows.map(r=>r.y));
+  const idx = Number($("#dtCandidate").value)||0;
+  const q = dtCandidates[idx];
+  const parentLabels = dtRows.map(r=>r.batman);
+  const parent = dtImpurity(parentLabels);
+  const lc = dtCounts(q.left), rc = dtCounts(q.right);
+
   drawDt(q);
-  $('#dtData').innerHTML='<table class="tbl"><thead><tr><th>Row</th><th>Hours</th><th>Attendance</th><th>Class</th></tr></thead><tbody>'+dtRows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.h+'</td><td>'+r.a+'</td><td>'+(r.y?'Pass':'Fail')+'</td></tr>').join('')+'</tbody></table>';
-  const lc1=q.left.filter(r=>r.y).length,lc0=q.left.length-lc1,rc1=q.right.filter(r=>r.y).length,rc0=q.right.length-rc1;
-  $('#dtMath').innerHTML='<div class="kicker">Candidate split</div><h3>'+q.name+' ≤ '+fmt(q.th,2)+'</h3><div class="math">Parent: Pass=5, Fail=3<br>Gini(parent) = 1 − (5/8)² − (3/8)² = <b>'+fmt(parent)+'</b><br><br>Left node: n='+q.left.length+', Pass='+lc1+', Fail='+lc0+'<br>Gini(L) = 1 − ('+lc1+'/'+q.left.length+')² − ('+lc0+'/'+q.left.length+')² = <b>'+fmt(q.gl)+'</b><br><br>Right node: n='+q.right.length+', Pass='+rc1+', Fail='+rc0+'<br>Gini(R) = <b>'+fmt(q.gr)+'</b><br><br>Weighted Gini = ('+q.left.length+'/8)×'+fmt(q.gl)+' + ('+q.right.length+'/8)×'+fmt(q.gr)+' = <b>'+fmt(q.wg)+'</b><br>Gini reduction = '+fmt(parent)+' − '+fmt(q.wg)+' = <b>'+fmt(q.gain)+'</b></div>';
-  $('#dtRanking').innerHTML='<table class="tbl"><thead><tr><th>Rank</th><th>Feature</th><th>Threshold</th><th>Weighted Gini</th><th>Gini reduction</th></tr></thead><tbody>'+dtCandidates.map((x,i)=>'<tr class="'+(i===idx?'selected':'')+'"><td>'+(i+1)+'</td><td>'+x.name+'</td><td>'+fmt(x.th,2)+'</td><td>'+fmt(x.wg)+'</td><td>'+fmt(x.gain)+'</td></tr>').join('')+'</tbody></table>';
-  const best=dtCandidates[0];
-  $('#dtTree').innerHTML='<div style="text-align:center"><div class="callout" style="display:inline-block;min-width:230px"><b>'+best.name+' ≤ '+fmt(best.th,2)+' ?</b><br>Gini reduction = '+fmt(best.gain)+'</div><div style="display:flex;justify-content:center;gap:80px;margin-top:18px"><div class="callout orange"><b>YES → Fail</b><br>'+best.left.length+' samples<br>Gini='+fmt(best.gl)+'</div><div class="callout green"><b>NO → Pass</b><br>'+best.right.length+' samples<br>Gini='+fmt(best.gr)+'</div></div></div>';
+
+  $("#dtData").innerHTML =
+    '<table class="tbl"><thead><tr><th>Row</th><th>Age</th><th>Loves Movies</th><th>Loves Cartoons</th><th>Loves Batman (Y)</th></tr></thead><tbody>'+
+    dtRows.map(r=>'<tr><td>'+r.id+'</td><td>'+r.age+'</td><td>'+r.movies+'</td><td>'+r.cartoons+'</td><td><b>'+r.batman+'</b></td></tr>').join("")+
+    '</tbody></table>';
+
+  $("#dtSplitSummary").innerHTML =
+    '<div class="metric-row"><div class="metric"><small>Criterion</small><strong>'+dtCriterionName()+'</strong></div>'+
+    '<div class="metric"><small>Parent impurity</small><strong>'+fmt(parent)+'</strong></div>'+
+    '<div class="metric"><small>Weighted child impurity</small><strong>'+fmt(q.weighted)+'</strong></div>'+
+    '<div class="metric"><small>'+dtGainName()+'</small><strong>'+fmt(q.gain)+'</strong></div></div>'+
+    '<div class="callout" style="margin-top:10px"><b>Selected split:</b> '+dtSplitLabel(q)+'</div>';
+
+  const parentFormula=dtFormulaFor(parentLabels), leftFormula=dtFormulaFor(q.left.map(r=>r.batman)), rightFormula=dtFormulaFor(q.right.map(r=>r.batman));
+
+  $("#dtMath").innerHTML =
+    '<div class="kicker">'+dtCriterionName()+' calculation</div><h3>'+dtSplitLabel(q)+'</h3>'+
+    '<div class="math">Parent: n=12, Batman Yes=9, No=3<br>'+dtCriterionName()+'(parent) = '+parentFormula+' = <b>'+fmt(parent)+'</b><br><br>'+
+    '<b>Left branch</b>: n='+lc.n+', Yes='+lc.yes+', No='+lc.no+'<br>'+dtCriterionName()+'(L) = '+leftFormula+' = <b>'+fmt(q.il)+'</b><br><br>'+
+    '<b>Right branch</b>: n='+rc.n+', Yes='+rc.yes+', No='+rc.no+'<br>'+dtCriterionName()+'(R) = '+rightFormula+' = <b>'+fmt(q.ir)+'</b><br><br>'+
+    'Weighted child impurity = ('+lc.n+'/12)×'+fmt(q.il)+' + ('+rc.n+'/12)×'+fmt(q.ir)+' = <b>'+fmt(q.weighted)+'</b><br><br>'+
+    dtGainName()+' = '+fmt(parent)+' − '+fmt(q.weighted)+' = <b>'+fmt(q.gain)+'</b></div>';
+
+  $("#dtRanking").innerHTML =
+    '<table class="tbl"><thead><tr><th>Rank</th><th>Candidate split</th><th>Left impurity</th><th>Right impurity</th><th>Weighted impurity</th><th>'+dtGainName()+'</th></tr></thead><tbody>'+
+    dtCandidates.map((x,i)=>'<tr class="'+(i===idx?"selected":"")+'"><td>'+(i+1)+'</td><td>'+dtSplitLabel(x)+'</td><td>'+fmt(x.il)+'</td><td>'+fmt(x.ir)+'</td><td>'+fmt(x.weighted)+'</td><td><b>'+fmt(x.gain)+'</b></td></tr>').join("")+
+    '</tbody></table>';
+
+  const best=dtCandidates[0], bl=dtCounts(best.left), br=dtCounts(best.right);
+  const leftClass = bl.majority ? "Loves Batman = Yes (1)" : "Loves Batman = No (0)";
+  const rightClass = br.majority ? "Loves Batman = Yes (1)" : "Loves Batman = No (0)";
+
+  $("#dtTree").innerHTML =
+    '<div style="text-align:center"><div class="callout" style="display:inline-block;min-width:280px"><b>'+dtSplitLabel(best)+' ?</b><br>'+dtGainName()+' = '+fmt(best.gain)+'</div>'+
+    '<div style="display:flex;justify-content:center;gap:60px;margin-top:18px;flex-wrap:wrap">'+
+    '<div class="callout green"><b>LEFT / TRUE-or-0 branch</b><br>'+bl.n+' samples: Yes='+bl.yes+', No='+bl.no+'<br>Prediction: <b>'+leftClass+'</b><br>'+dtCriterionName()+'='+fmt(best.il)+'</div>'+
+    '<div class="callout orange"><b>RIGHT / FALSE-or-1 branch</b><br>'+br.n+' samples: Yes='+br.yes+', No='+br.no+'<br>Prediction: <b>'+rightClass+'</b><br>'+dtCriterionName()+'='+fmt(best.ir)+'</div></div></div>';
 }
-buildDtCandidates();renderDt();
-$('#dtCandidate').addEventListener('change',renderDt);
-$('#dtBest').addEventListener('click',()=>{$('#dtCandidate').value=0;renderDt()});
+
+$("#dtCandidate").addEventListener("change",renderDt);
+$("#dtBest").addEventListener("click",()=>{$("#dtCandidate").value=0;renderDt();});
+$("#dtGiniBtn").addEventListener("click",()=>setDtCriterion("gini"));
+$("#dtEntropyBtn").addEventListener("click",()=>setDtCriterion("entropy"));
+setDtCriterion("gini");
 
 // SVM — same cat/dog data, linear primal training + RBF kernel math
 let svmHist=[],svmTimer=null;
