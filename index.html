@@ -106,7 +106,30 @@ let W=x.map(()=>Array.from({length:nh},()=>rand()-0.5)),bh=Array.from({length:nh
 for(let e=1;e<=epochs;e++){const old=JSON.parse(JSON.stringify({W,bh,V,bo}));const zh=Array.from({length:nh},(_,j)=>bh[j]+x.reduce((s,xi,i)=>s+xi*W[i][j],0));const h=zh.map(z=>act(z,activation));const zo=bo+h.reduce((s,hj,j)=>s+hj*V[j],0);const out=sigmoid(zo);const loss=.5*(out-y)**2;const deltaO=(out-y)*out*(1-out);const gradV=h.map(v=>v*deltaO);const deltaH=zh.map((z,j)=>V[j]*deltaO*dact(z,activation));const gradW=x.map(xi=>deltaH.map(d=>xi*d));const gradBh=deltaH.slice(),gradBo=deltaO;
 W=W.map((row,i)=>row.map((w,j)=>w-lr*gradW[i][j]));bh=bh.map((b,j)=>b-lr*gradBh[j]);V=V.map((v,j)=>v-lr*gradV[j]);bo-=lr*gradBo;annHist.push({e,x,y,nh,lr,activation,init,old,zh,h,zo,out,loss,deltaO,gradV,deltaH,gradW,gradBh,gradBo,newW:JSON.parse(JSON.stringify({W,bh,V,bo}))})}
 $('#annSlider').max=5;$('#annMax').textContent='5';$('#annSlider').value=1;$('#annStatus').textContent=`Initialized and trained for ${epochs} epoch${epochs===1?'':'s'}.`;renderAnn(0)}
-function annNet(r){const inY=r.x.map((_,i)=>55+i*(190/Math.max(1,r.x.length-1||1))),hY=r.h.map((_,j)=>55+j*(190/Math.max(1,r.h.length-1||1)));let s='';r.x.forEach((_,i)=>r.h.forEach((_,j)=>{s+=`<line x1="145" y1="${inY[i]}" x2="365" y2="${hY[j]}" stroke="#aeb9ca" stroke-width="1.4"/><text x="255" y="${(inY[i]+hY[j])/2-4}" text-anchor="middle" font-size="11" fill="#596a82">w${i+1}${j+1}=${fmt(r.old.W[i][j],4)}</text>`}));r.h.forEach((_,j)=>{s+=`<line x1="415" y1="${hY[j]}" x2="625" y2="150" stroke="#aeb9ca" stroke-width="1.4"/><text x="515" y="${(hY[j]+150)/2-4}" text-anchor="middle" font-size="11" fill="#596a82">v${j+1}=${fmt(r.old.V[j],4)}</text>`});r.x.forEach((v,i)=>s+=`<circle cx="120" cy="${inY[i]}" r="25" fill="#eaf1ff" stroke="#2563eb" stroke-width="2"/><text x="120" y="${inY[i]+4}" text-anchor="middle" font-size="12" fill="#152033">x${i+1}=${fmt(v,3)}</text>`);r.h.forEach((v,j)=>s+=`<circle cx="390" cy="${hY[j]}" r="27" fill="#f3edff" stroke="#7c3aed" stroke-width="2"/><text x="390" y="${hY[j]+4}" text-anchor="middle" font-size="11" fill="#152033">h${j+1}=${fmt(v,3)}</text>`);s+=`<circle cx="650" cy="150" r="31" fill="#eaf8ef" stroke="#15803d" stroke-width="2.5"/><text x="650" y="154" text-anchor="middle" font-size="12" fill="#152033">ŷ=${fmt(r.out,3)}</text><text x="120" y="285" text-anchor="middle" font-size="12" fill="#607089">Input layer</text><text x="390" y="285" text-anchor="middle" font-size="12" fill="#607089">Hidden layer</text><text x="650" y="285" text-anchor="middle" font-size="12" fill="#607089">Output</text>`;$('#annNet').innerHTML=s}
+function annNet(r){
+  const inY=r.x.map((_,i)=>55+i*(190/Math.max(1,r.x.length-1||1)));
+  const hY=r.h.map((_,j)=>55+j*(190/Math.max(1,r.h.length-1||1)));
+  const halo='style="paint-order:stroke;stroke:#ffffff;stroke-width:5px;stroke-linejoin:round"';
+  let s='';
+  r.x.forEach((_,i)=>r.h.forEach((_,j)=>{
+    const x1=145,y1=inY[i],x2=365,y2=hY[j];
+    const sameBand=(r.x.length===r.h.length && i===j);
+    let t=sameBand?0.50:(((i+j)%2===0)?0.32:0.68);
+    if(r.x.length>2||r.h.length>2)t=[0.26,0.42,0.58,0.74][(i*3+j)%4];
+    const lx=x1+t*(x2-x1);
+    const ly=y1+t*(y2-y1)+(y2>y1?-10:(y2<y1?14:-8));
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#aeb9ca" stroke-width="1.4"/><text x="${lx}" y="${ly}" text-anchor="middle" font-size="11" fill="#596a82" ${halo}>w${i+1}${j+1}=${fmt(r.old.W[i][j],4)}</text>`;
+  }));
+  r.h.forEach((_,j)=>{
+    const x1=415,y1=hY[j],x2=625,y2=150,t=j%2===0?0.44:0.62;
+    const lx=x1+t*(x2-x1),ly=y1+t*(y2-y1)+(y2>y1?-10:14);
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#aeb9ca" stroke-width="1.4"/><text x="${lx}" y="${ly}" text-anchor="middle" font-size="11" fill="#596a82" ${halo}>v${j+1}=${fmt(r.old.V[j],4)}</text>`;
+  });
+  r.x.forEach((v,i)=>s+=`<circle cx="120" cy="${inY[i]}" r="25" fill="#eaf1ff" stroke="#2563eb" stroke-width="2"/><text x="120" y="${inY[i]+4}" text-anchor="middle" font-size="12" fill="#152033">x${i+1}=${fmt(v,3)}</text>`);
+  r.h.forEach((v,j)=>s+=`<circle cx="390" cy="${hY[j]}" r="27" fill="#f3edff" stroke="#7c3aed" stroke-width="2"/><text x="390" y="${hY[j]+4}" text-anchor="middle" font-size="11" fill="#152033">h${j+1}=${fmt(v,3)}</text>`);
+  s+=`<circle cx="650" cy="150" r="31" fill="#eaf8ef" stroke="#15803d" stroke-width="2.5"/><text x="650" y="154" text-anchor="middle" font-size="12" fill="#152033">ŷ=${fmt(r.out,3)}</text><text x="120" y="285" text-anchor="middle" font-size="12" fill="#607089">Input layer</text><text x="390" y="285" text-anchor="middle" font-size="12" fill="#607089">Hidden layer</text><text x="650" y="285" text-anchor="middle" font-size="12" fill="#607089">Output</text>`;
+  $('#annNet').innerHTML=s;
+}
 function renderAnn(idx){if(!annHist.length)return;const r=annHist[clamp(idx,0,annHist.length-1)];$('#annEpochLabel').textContent=`${r.e} / ${annHist.length}`;$('#annPred').textContent=fmt(r.out);$('#annLoss').textContent=fmt(r.loss);$('#annSlider').value=r.e;annNet(r);['#annInit','#annForward','#annBackward'].forEach(s=>{const el=$(s);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')});
 let initRows=[];r.init.W.forEach((row,i)=>row.forEach((v,j)=>initRows.push(`<tr><td>W(x${i+1}→h${j+1})</td><td>${fmt(v)}</td></tr>`)));r.init.bh.forEach((v,j)=>initRows.push(`<tr><td>b(h${j+1})</td><td>${fmt(v)}</td></tr>`));r.init.V.forEach((v,j)=>initRows.push(`<tr><td>V(h${j+1}→ŷ)</td><td>${fmt(v)}</td></tr>`));initRows.push(`<tr><td>b(output)</td><td>${fmt(r.init.bo)}</td></tr>`);
 $('#annInit').innerHTML=`<div class="kicker">Stage 0</div><h3>${r.e===1?'Random initialization before Epoch 1':'Weights entering Epoch '+r.e}</h3>${r.e===1?`<p class="lead">Random seed = <b>${htmlEscape($('#annSeed').value)}</b>. Every trainable parameter is sampled from <b>Uniform(−0.5, 0.5)</b>. This makes the first forward pass reproducible.</p><div class="tablewrap"><table class="tbl"><thead><tr><th>Parameter</th><th>Initial value</th></tr></thead><tbody>${initRows.join('')}</tbody></table></div>`:`<p class="lead">These are the weights <b>after Epoch ${r.e-1}</b>. They become the starting weights for Epoch ${r.e}.</p>`}`;
