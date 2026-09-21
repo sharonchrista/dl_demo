@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Deep Learning Visual Lab | ANN · CNN · RNN · RGB CNN · LSTM</title>
+<title>ML & Deep Learning Visual Lab | Regression · Trees · SVM · Neural Networks</title>
 <meta name="description" content="Interactive teaching lab for ANN forward/backpropagation, CNN convolution/pooling, RNN BPTT, RGB CNN, and LSTM gate calculations with detailed arithmetic.">
 <style>
 :root{--bg:#f5f7fb;--card:#fff;--ink:#152033;--muted:#607089;--line:#dce3ee;--blue:#2563eb;--blue2:#eaf1ff;--green:#15803d;--green2:#eaf8ef;--orange:#c2410c;--orange2:#fff1e9;--purple:#7c3aed;--purple2:#f3edff;--red:#b42318;--red2:#feeceb;--shadow:0 8px 28px rgba(31,52,80,.08)}
@@ -22,9 +22,9 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 </head>
 <body>
 <main class="app">
-<header class="hero"><div><h1>Deep Learning Visual Lab</h1><p>Interactive classroom demonstrator for <b>ANN</b>, <b>CNN</b>, <b>RNN</b>, <b>RGB CNN</b>, and <b>LSTM</b>. The purpose is not to hide training behind a library call: every multiplication, addition, activation, loss term, gradient, and weight update is shown explicitly.</p></div><div class="badge">Teaching mode · detailed arithmetic · LSTM build v1</div></header>
+<header class="hero"><div><h1>Deep Learning Visual Lab</h1><p>Interactive classroom demonstrator for <b>Linear Regression</b>, <b>Decision Trees</b>, <b>SVM</b>, <b>ANN</b>, <b>CNN</b>, <b>RNN</b>, <b>RGB CNN</b>, and <b>LSTM</b>. The purpose is not to hide training behind a library call: every multiplication, addition, activation, loss term, gradient, and weight update is shown explicitly.</p></div><div class="badge">Teaching mode · detailed arithmetic · LSTM build v1</div></header>
 <nav class="tabs" aria-label="Lab sections">
-<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button>
+<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button><button class="tab" data-tab="linreg">6 · Linear Regression</button><button class="tab" data-tab="dtree">7 · Decision Tree</button><button class="tab" data-tab="svm">8 · SVM</button>
 </nav>
 
 <section id="ann" class="panel active">
@@ -94,6 +94,42 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <div id="rnnInit" class="card"></div><div id="rnnForward" class="card"></div><div id="rnnBptt" class="card"></div><div class="card"><h3>RNN epoch history</h3><div id="rnnHistory" class="tablewrap"></div></div>
 </div></div>
 </section>
+
+<section id="linreg" class="panel">
+<div class="grid">
+<aside class="card"><h2>Linear Regression Visual Lab</h2><p class="hint">A six-point dataset is fitted using both the closed-form least-squares solution and gradient descent.</p><div class="callout"><b>Model:</b><br>Ŷ = b₀ + b₁x<br><br><b>Goal:</b> choose b₀ and b₁ to minimize squared residuals.</div><div class="controls"><button id="lrClosed" class="secondary">Show closed-form steps</button><button id="lrGdAuto" class="secondary">▶ Animate 5 GD epochs</button><button id="lrGdPause" class="secondary">⏸ Pause</button></div></aside>
+<div class="stack">
+<div class="card"><div class="two"><div><h3>Dataset + fitted line</h3><canvas id="lrCanvas" width="620" height="360" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas></div><div><h3>Sample data</h3><div id="lrData" class="tablewrap"></div></div></div></div>
+<div id="lrMath" class="card"></div>
+<div class="card"><h3>Residuals and squared error</h3><div id="lrResiduals" class="tablewrap"></div></div>
+<div class="card"><div class="metric-row"><div class="metric"><small>Gradient-descent epoch</small><strong id="lrEpochLabel">1 / 5</strong></div><div class="metric"><small>Slope b₁</small><strong id="lrSlope">–</strong></div><div class="metric"><small>Intercept b₀</small><strong id="lrIntercept">–</strong></div><div class="metric"><small>MSE</small><strong id="lrMse">–</strong></div></div><div class="slider-row"><span>1</span><input id="lrEpoch" type="range" min="1" max="5" value="1"><span>5</span></div><div id="lrGdMath" class="math" style="margin-top:10px"></div></div>
+</div></div>
+</section>
+
+<section id="dtree" class="panel">
+<div class="grid">
+<aside class="card"><h2>Decision Tree Visual Lab</h2><p class="hint">This classification example chooses a split by minimizing weighted Gini impurity.</p><div class="callout green"><b>Gini impurity</b><br>Gini = 1 − Σ pₖ²<br><br><b>Weighted split impurity</b><br>(nL/n)Gini(L) + (nR/n)Gini(R)</div><label class="field" style="margin-top:12px">Candidate split<select id="dtCandidate"></select></label><button id="dtBest" class="primary">Jump to best split</button></aside>
+<div class="stack">
+<div class="card"><div class="two"><div><h3>Dataset and candidate boundary</h3><canvas id="dtCanvas" width="620" height="360" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas></div><div><h3>Training rows</h3><div id="dtData" class="tablewrap"></div></div></div></div>
+<div id="dtMath" class="card"></div>
+<div class="card"><h3>All candidate splits</h3><div id="dtRanking" class="tablewrap"></div></div>
+<div class="card"><h3>Resulting first-level tree</h3><div id="dtTree"></div></div>
+</div></div>
+</section>
+
+<section id="svm" class="panel">
+<div class="card"><h2>SVM — corrected hand-calculation visualization</h2><p class="lead">This tab follows the structure of the uploaded hand-worked SVM example, but corrects the arithmetic and kernel definition before visualizing it.</p><div class="callout orange"><b>Corrections applied:</b><br>1. For the linear kernel, K(x₁,x′₂) is 4, not 2.<br>2. Therefore the second linear decision score is 9, not 5.<br>3. The standard Gaussian RBF kernel is exp(−γ‖x−x′‖²); no square root is taken after summing squared differences.<br>4. “Decision boundary” is f(x)=0; the computed scalar b+ΣαᵢyᵢK(xᵢ,x′) is the <b>decision score</b>.<br>5. The supplied linear α values are retained only as illustrative coefficients; they do not satisfy the standard bias-SVM dual constraint Σαᵢyᵢ=0.</div></div>
+<div class="grid" style="margin-top:14px">
+<aside class="card"><label class="field">Kernel<select id="svmKernel"><option value="linear">Linear kernel</option><option value="rbf">Gaussian RBF</option></select></label><label class="field" style="margin-top:10px">Test point<select id="svmTest"><option value="0">x′₁ = [2, 4, 3]</option><option value="1">x′₂ = [1, 1, 1]</option></select></label><div class="slider-row"><span>row 1</span><input id="svmRow" type="range" min="0" max="5" value="0"><span>row 6</span></div><div class="controls"><button id="svmPrev" class="secondary">← Previous row</button><button id="svmNext" class="secondary">Next row →</button><button id="svmAuto" class="secondary">▶ Animate rows</button><button id="svmPause" class="secondary">⏸ Pause</button></div><div class="callout" style="margin-top:12px">For classification:<br>f(x′) &gt; 0 → +1<br>f(x′) &lt; 0 → −1</div></aside>
+<div class="stack">
+<div class="card"><div class="metric-row"><div class="metric"><small>Kernel</small><strong id="svmKernelLabel">Linear</strong></div><div class="metric"><small>Decision score f(x′)</small><strong id="svmScore">–</strong></div><div class="metric"><small>Predicted class</small><strong id="svmPred">–</strong></div><div class="metric"><small>Selected training row</small><strong id="svmRowLabel">x₁</strong></div></div></div>
+<div class="card"><h3>Training data and kernel values</h3><div id="svmTable" class="tablewrap"></div></div>
+<div id="svmRowMath" class="card"></div>
+<div id="svmDecisionMath" class="card"></div>
+<div class="card"><h3>Illustrative 2D SVM geometry</h3><p class="hint">This small 2D sketch is conceptual; the hand-calculation dataset above has three input features.</p><canvas id="svmCanvas" width="620" height="360" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><div class="legend"><span>Dashed lines: margins</span><span>Solid line: f(x)=0</span><span>Ringed points: support-vector examples</span></div></div>
+</div></div>
+</section>
+
 <footer class="footer">Deep Learning Visual Lab · ANN · CNN · RNN · RGB CNN · LSTM · Static browser application</footer>
 </main>
 <script>
@@ -394,6 +430,138 @@ $('#rnnNextRow').addEventListener('click',()=>{stopRnnAuto();nextRnnRow()});
 $('#rnnNextEpoch').addEventListener('click',()=>{stopRnnAuto();setRnn(Number($('#rnnEpochSlider').value)+1,0)});
 $('#rnnAuto').addEventListener('click',startRnnAuto);$('#rnnPause').addEventListener('click',()=>{stopRnnAuto();$('#rnnStatus').textContent='RNN animation paused.'});
 rnnTrain();setRnn(1,0);
+
+// Linear Regression
+const lrX=[1,2,3,4,5,6],lrY=[1.5,1.9,3.2,3.8,5.1,5.7];
+let lrGd=[],lrTimer=null;
+function lrClosedForm(){
+  const n=lrX.length,xbar=lrX.reduce((a,b)=>a+b,0)/n,ybar=lrY.reduce((a,b)=>a+b,0)/n;
+  const num=lrX.reduce((s,x,i)=>s+(x-xbar)*(lrY[i]-ybar),0),den=lrX.reduce((s,x)=>s+(x-xbar)*(x-xbar),0);
+  const b1=num/den,b0=ybar-b1*xbar;
+  const pred=lrX.map(x=>b0+b1*x),res=lrY.map((y,i)=>y-pred[i]),mse=res.reduce((s,e)=>s+e*e,0)/n;
+  return {n,xbar,ybar,num,den,b1,b0,pred,res,mse};
+}
+function drawLr(b0,b1){
+  const cv=$('#lrCanvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height,p=45;
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle='#dce3ee';ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){const x=p+i*(W-2*p)/6;ctx.beginPath();ctx.moveTo(x,p);ctx.lineTo(x,H-p);ctx.stroke();}
+  for(let i=0;i<=6;i++){const y=p+i*(H-2*p)/6;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(W-p,y);ctx.stroke();}
+  const sx=x=>p+(x/7)*(W-2*p),sy=y=>H-p-(y/7)*(H-2*p);
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx(0),sy(b0));ctx.lineTo(sx(7),sy(b0+b1*7));ctx.stroke();
+  lrX.forEach((x,i)=>{ctx.fillStyle='#7c3aed';ctx.beginPath();ctx.arc(sx(x),sy(lrY[i]),6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#c2410c';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(sx(x),sy(lrY[i]));ctx.lineTo(sx(x),sy(b0+b1*x));ctx.stroke();});
+  ctx.fillStyle='#42516a';ctx.font='13px sans-serif';ctx.fillText('x',W-30,H-18);ctx.fillText('y',18,25);
+}
+function buildLrGd(){
+  let b1=0,b0=0,eta=.02;lrGd=[];
+  for(let e=1;e<=5;e++){
+    const pred=lrX.map(x=>b0+b1*x),err=pred.map((p,i)=>p-lrY[i]),mse=err.reduce((s,v)=>s+v*v,0)/lrX.length;
+    const db1=(2/lrX.length)*err.reduce((s,v,i)=>s+v*lrX[i],0),db0=(2/lrX.length)*err.reduce((s,v)=>s+v,0);
+    const old={b0,b1};b1-=eta*db1;b0-=eta*db0;
+    lrGd.push({e,old,pred,err,mse,db1,db0,eta,newv:{b0,b1}});
+  }
+}
+function renderLr(){
+  const cf=lrClosedForm(),e=Number($('#lrEpoch').value),g=lrGd[e-1];
+  drawLr(g.newv.b0,g.newv.b1);
+  $('#lrData').innerHTML='<table class="tbl"><thead><tr><th>i</th><th>x</th><th>Actual Y</th></tr></thead><tbody>'+lrX.map((x,i)=>'<tr><td>'+(i+1)+'</td><td>'+fmt(x,2)+'</td><td>'+fmt(lrY[i],2)+'</td></tr>').join('')+'</tbody></table>';
+  $('#lrMath').innerHTML='<div class="kicker">Closed-form least squares</div><h3>Derive slope and intercept</h3><div class="math">x̄ = Σx/n = '+lrX.join('+')+' / 6 = <b>'+fmt(cf.xbar)+'</b><br>ȳ = Σy/n = '+lrY.join('+')+' / 6 = <b>'+fmt(cf.ybar)+'</b><br><br>b₁ = Σ(x−x̄)(y−ȳ) / Σ(x−x̄)²<br>= '+fmt(cf.num)+' / '+fmt(cf.den)+' = <b>'+fmt(cf.b1)+'</b><br><br>b₀ = ȳ − b₁x̄ = '+fmt(cf.ybar)+' − '+fmt(cf.b1)+'×'+fmt(cf.xbar)+' = <b>'+fmt(cf.b0)+'</b><br><br>Final line: <b>Ŷ = '+fmt(cf.b0,4)+' + '+fmt(cf.b1,4)+'x</b></div>';
+  $('#lrResiduals').innerHTML='<table class="tbl"><thead><tr><th>x</th><th>Actual Y</th><th>Predicted Ŷ</th><th>Residual Y−Ŷ</th><th>Residual²</th></tr></thead><tbody>'+lrX.map((x,i)=>'<tr><td>'+x+'</td><td>'+fmt(lrY[i],3)+'</td><td>'+fmt(cf.pred[i],3)+'</td><td>'+fmt(cf.res[i],3)+'</td><td>'+fmt(cf.res[i]*cf.res[i],4)+'</td></tr>').join('')+'</tbody></table><div class="callout" style="margin-top:10px">MSE = Σ(Y−Ŷ)²/n = <b>'+fmt(cf.mse)+'</b></div>';
+  $('#lrEpochLabel').textContent=e+' / 5';$('#lrSlope').textContent=fmt(g.newv.b1);$('#lrIntercept').textContent=fmt(g.newv.b0);$('#lrMse').textContent=fmt(g.mse);
+  $('#lrGdMath').innerHTML='Epoch '+e+' starts with b₁='+fmt(g.old.b1)+', b₀='+fmt(g.old.b0)+'<br>MSE = <b>'+fmt(g.mse)+'</b><br><br>∂MSE/∂b₁ = (2/n)Σ(Ŷ−Y)x = <b>'+fmt(g.db1)+'</b><br>∂MSE/∂b₀ = (2/n)Σ(Ŷ−Y) = <b>'+fmt(g.db0)+'</b><br><br>b₁(new) = '+fmt(g.old.b1)+' − '+fmt(g.eta)+'×('+fmt(g.db1)+') = <b>'+fmt(g.newv.b1)+'</b><br>b₀(new) = '+fmt(g.old.b0)+' − '+fmt(g.eta)+'×('+fmt(g.db0)+') = <b>'+fmt(g.newv.b0)+'</b>';
+}
+buildLrGd();renderLr();
+$('#lrEpoch').addEventListener('input',()=>{if(lrTimer){clearInterval(lrTimer);lrTimer=null}renderLr()});
+$('#lrClosed').addEventListener('click',()=>{$('#lrMath').scrollIntoView({behavior:'smooth',block:'center'})});
+$('#lrGdAuto').addEventListener('click',()=>{if(lrTimer)return;let e=Number($('#lrEpoch').value);if(e>=5){e=0}lrTimer=setInterval(()=>{e++;$('#lrEpoch').value=e;renderLr();if(e>=5){clearInterval(lrTimer);lrTimer=null}},1000)});
+$('#lrGdPause').addEventListener('click',()=>{if(lrTimer){clearInterval(lrTimer);lrTimer=null}});
+
+// Decision Tree
+const dtRows=[
+ {h:1,a:55,y:0},{h:2,a:80,y:0},{h:3,a:65,y:0},{h:4,a:60,y:1},
+ {h:5,a:75,y:1},{h:6,a:85,y:1},{h:7,a:70,y:1},{h:8,a:92,y:1}
+];
+let dtCandidates=[];
+function gini(labels){if(!labels.length)return 0;const p=labels.reduce((s,v)=>s+v,0)/labels.length;return 1-p*p-(1-p)*(1-p)}
+function buildDtCandidates(){
+  dtCandidates=[];
+  [['h','Study hours'],['a','Attendance']].forEach(([key,name])=>{
+    const vals=[...new Set(dtRows.map(r=>r[key]))].sort((a,b)=>a-b);
+    for(let i=0;i<vals.length-1;i++){
+      const th=(vals[i]+vals[i+1])/2,left=dtRows.filter(r=>r[key]<=th),right=dtRows.filter(r=>r[key]>th);
+      const gl=gini(left.map(r=>r.y)),gr=gini(right.map(r=>r.y)),wg=(left.length/dtRows.length)*gl+(right.length/dtRows.length)*gr,parent=gini(dtRows.map(r=>r.y));
+      dtCandidates.push({key,name,th,left,right,gl,gr,wg,gain:parent-wg});
+    }
+  });
+  dtCandidates.sort((a,b)=>b.gain-a.gain);
+  $('#dtCandidate').innerHTML=dtCandidates.map((q,i)=>'<option value="'+i+'">'+q.name+' ≤ '+fmt(q.th,2)+'</option>').join('');
+}
+function drawDt(q){
+  const cv=$('#dtCanvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height,p=45,sx=x=>p+(x/9)*(W-2*p),sy=y=>H-p-((y-50)/50)*(H-2*p);
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle='#dce3ee';for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(p,p+i*(H-2*p)/5);ctx.lineTo(W-p,p+i*(H-2*p)/5);ctx.stroke();}
+  dtRows.forEach(r=>{ctx.fillStyle=r.y?'#15803d':'#b42318';ctx.beginPath();ctx.arc(sx(r.h),sy(r.a),7,0,Math.PI*2);ctx.fill();});
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();if(q.key==='h'){ctx.moveTo(sx(q.th),p);ctx.lineTo(sx(q.th),H-p)}else{ctx.moveTo(p,sy(q.th));ctx.lineTo(W-p,sy(q.th))}ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#42516a';ctx.font='13px sans-serif';ctx.fillText('Study hours',W-110,H-15);ctx.save();ctx.translate(15,H/2+40);ctx.rotate(-Math.PI/2);ctx.fillText('Attendance',0,0);ctx.restore();
+}
+function renderDt(){
+  const idx=Number($('#dtCandidate').value)||0,q=dtCandidates[idx],parent=gini(dtRows.map(r=>r.y));
+  drawDt(q);
+  $('#dtData').innerHTML='<table class="tbl"><thead><tr><th>Row</th><th>Hours</th><th>Attendance</th><th>Class</th></tr></thead><tbody>'+dtRows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.h+'</td><td>'+r.a+'</td><td>'+(r.y?'Pass':'Fail')+'</td></tr>').join('')+'</tbody></table>';
+  const lc1=q.left.filter(r=>r.y).length,lc0=q.left.length-lc1,rc1=q.right.filter(r=>r.y).length,rc0=q.right.length-rc1;
+  $('#dtMath').innerHTML='<div class="kicker">Candidate split</div><h3>'+q.name+' ≤ '+fmt(q.th,2)+'</h3><div class="math">Parent: Pass=5, Fail=3<br>Gini(parent) = 1 − (5/8)² − (3/8)² = <b>'+fmt(parent)+'</b><br><br>Left node: n='+q.left.length+', Pass='+lc1+', Fail='+lc0+'<br>Gini(L) = 1 − ('+lc1+'/'+q.left.length+')² − ('+lc0+'/'+q.left.length+')² = <b>'+fmt(q.gl)+'</b><br><br>Right node: n='+q.right.length+', Pass='+rc1+', Fail='+rc0+'<br>Gini(R) = <b>'+fmt(q.gr)+'</b><br><br>Weighted Gini = ('+q.left.length+'/8)×'+fmt(q.gl)+' + ('+q.right.length+'/8)×'+fmt(q.gr)+' = <b>'+fmt(q.wg)+'</b><br>Gini reduction = '+fmt(parent)+' − '+fmt(q.wg)+' = <b>'+fmt(q.gain)+'</b></div>';
+  $('#dtRanking').innerHTML='<table class="tbl"><thead><tr><th>Rank</th><th>Feature</th><th>Threshold</th><th>Weighted Gini</th><th>Gini reduction</th></tr></thead><tbody>'+dtCandidates.map((x,i)=>'<tr class="'+(i===idx?'selected':'')+'"><td>'+(i+1)+'</td><td>'+x.name+'</td><td>'+fmt(x.th,2)+'</td><td>'+fmt(x.wg)+'</td><td>'+fmt(x.gain)+'</td></tr>').join('')+'</tbody></table>';
+  const best=dtCandidates[0];
+  $('#dtTree').innerHTML='<div style="text-align:center"><div class="callout" style="display:inline-block;min-width:230px"><b>'+best.name+' ≤ '+fmt(best.th,2)+' ?</b><br>Gini reduction = '+fmt(best.gain)+'</div><div style="display:flex;justify-content:center;gap:80px;margin-top:18px"><div class="callout orange"><b>YES → Fail</b><br>'+best.left.length+' samples<br>Gini='+fmt(best.gl)+'</div><div class="callout green"><b>NO → Pass</b><br>'+best.right.length+' samples<br>Gini='+fmt(best.gr)+'</div></div></div>';
+}
+buildDtCandidates();renderDt();
+$('#dtCandidate').addEventListener('change',renderDt);
+$('#dtBest').addEventListener('click',()=>{$('#dtCandidate').value=0;renderDt()});
+
+// SVM
+const svmX=[[1,2,1],[0,4,3],[0,3,0],[0,3,1],[5,0,3],[1,4,3]],svmY=[1,-1,1,-1,1,-1],svmT=[[2,4,3],[1,1,1]];
+const svmAL=[2,0,1,1,1,1],svmBL=2,svmAR=[20,10,10,10,0,10],svmBR=-1,svmGamma=.1;
+let svmTimer=null;
+function svmValues(kernel,test){
+  const alpha=kernel==='linear'?svmAL:svmAR,b=kernel==='linear'?svmBL:svmBR;
+  const rows=svmX.map((x,i)=>{
+    let k,d2=null;
+    if(kernel==='linear')k=x.reduce((s,v,j)=>s+v*svmT[test][j],0);
+    else{d2=x.reduce((s,v,j)=>s+(v-svmT[test][j])**2,0);k=Math.exp(-svmGamma*d2);}
+    return {i,x,y:svmY[i],alpha:alpha[i],ay:alpha[i]*svmY[i],k,d2,contrib:alpha[i]*svmY[i]*k};
+  });
+  const score=b+rows.reduce((s,r)=>s+r.contrib,0);
+  return {rows,b,score,pred:score>=0?1:-1};
+}
+function drawSvmGeometry(){
+  const cv=$('#svmCanvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height,p=45,sx=x=>p+(x/6)*(W-2*p),sy=y=>H-p-(y/6)*(H-2*p);
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle='#e1e6ef';for(let i=0;i<=6;i++){ctx.beginPath();ctx.moveTo(sx(i),p);ctx.lineTo(sx(i),H-p);ctx.stroke();ctx.beginPath();ctx.moveTo(p,sy(i));ctx.lineTo(W-p,sy(i));ctx.stroke();}
+  const lines=[{c:4.5,dash:[],w:3},{c:3,dash:[7,6],w:2},{c:6,dash:[7,6],w:2}];
+  lines.forEach(L=>{ctx.strokeStyle=L.c===4.5?'#2563eb':'#607089';ctx.lineWidth=L.w;ctx.setLineDash(L.dash);ctx.beginPath();ctx.moveTo(sx(0),sy(L.c));ctx.lineTo(sx(6),sy(L.c-6));ctx.stroke();});ctx.setLineDash([]);
+  const neg=[[1,1],[2,1],[1,2]],pos=[[3,3],[4,3],[3,4]];
+  neg.forEach((q,i)=>{ctx.fillStyle='#b42318';ctx.beginPath();ctx.arc(sx(q[0]),sy(q[1]),7,0,Math.PI*2);ctx.fill();if(i>0){ctx.strokeStyle='#152033';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx(q[0]),sy(q[1]),11,0,Math.PI*2);ctx.stroke();}});
+  pos.forEach((q,i)=>{ctx.fillStyle='#15803d';ctx.beginPath();ctx.arc(sx(q[0]),sy(q[1]),7,0,Math.PI*2);ctx.fill();if(i===0){ctx.strokeStyle='#152033';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx(q[0]),sy(q[1]),11,0,Math.PI*2);ctx.stroke();}});
+  ctx.fillStyle='#42516a';ctx.font='13px sans-serif';ctx.fillText('x₁',W-28,H-16);ctx.fillText('x₂',18,24);
+}
+function renderSvm(){
+  const kernel=$('#svmKernel').value,test=Number($('#svmTest').value),row=Number($('#svmRow').value),v=svmValues(kernel,test),r=v.rows[row],tp=svmT[test];
+  $('#svmKernelLabel').textContent=kernel==='linear'?'Linear':'Gaussian RBF';$('#svmScore').textContent=fmt(v.score);$('#svmPred').textContent=v.pred>0?'+1':'−1';$('#svmRowLabel').textContent='x'+(row+1);
+  $('#svmTable').innerHTML='<table class="tbl"><thead><tr><th>i</th><th>xᵢ</th><th>yᵢ</th><th>αᵢ</th><th>αᵢyᵢ</th>'+(kernel==='rbf'?'<th>‖xᵢ−x′‖²</th>':'')+'<th>K(xᵢ,x′)</th><th>Contribution</th></tr></thead><tbody>'+v.rows.map((q,i)=>'<tr class="'+(i===row?'selected':'')+'"><td>'+(i+1)+'</td><td>['+q.x.join(', ')+']</td><td>'+q.y+'</td><td>'+q.alpha+'</td><td>'+q.ay+'</td>'+(kernel==='rbf'?'<td>'+fmt(q.d2,3)+'</td>':'')+'<td>'+fmt(q.k,6)+'</td><td>'+fmt(q.contrib,6)+'</td></tr>').join('')+'</tbody></table>';
+  if(kernel==='linear'){
+    const prods=r.x.map((x,j)=>x+'×'+tp[j]);
+    $('#svmRowMath').innerHTML='<div class="kicker">Linear kernel · selected row</div><h3>K(x'+(row+1)+', x′'+(test+1)+')</h3><div class="math">x'+(row+1)+' = ['+r.x.join(', ')+']<br>x′'+(test+1)+' = ['+tp.join(', ')+']<br><br>K = xᵢᵀx′ = '+prods.join(' + ')+'<br>= <b>'+fmt(r.k)+'</b><br><br>Contribution = αᵢyᵢK = '+r.alpha+'×'+r.y+'×'+fmt(r.k)+' = <b>'+fmt(r.contrib)+'</b></div>';
+  }else{
+    const dif=r.x.map((x,j)=>x-tp[j]),sq=dif.map(z=>z*z);
+    $('#svmRowMath').innerHTML='<div class="kicker">Gaussian RBF · selected row</div><h3>K(x'+(row+1)+', x′'+(test+1)+')</h3><div class="math">Differences = ['+dif.join(', ')+']<br>Squared differences = ['+sq.join(', ')+']<br>‖xᵢ−x′‖² = '+sq.join(' + ')+' = <b>'+fmt(r.d2)+'</b><br><br>K = exp(−γ‖xᵢ−x′‖²)<br>= exp(−'+svmGamma+'×'+fmt(r.d2)+')<br>= <b>'+fmt(r.k,6)+'</b><br><br>Contribution = αᵢyᵢK = '+r.alpha+'×'+r.y+'×'+fmt(r.k,6)+' = <b>'+fmt(r.contrib,6)+'</b></div>';
+  }
+  $('#svmDecisionMath').innerHTML='<div class="kicker">Decision function</div><h3>Combine all six training-point contributions</h3><div class="math">f(x′) = b + Σ αᵢyᵢK(xᵢ,x′)<br>= '+fmt(v.b)+' + '+v.rows.map(q=>'('+fmt(q.contrib,6)+')').join(' + ')+'<br>= <b>'+fmt(v.score,6)+'</b><br><br>sign(f(x′)) = <b>'+(v.pred>0?'+1':'−1')+'</b></div>'+(kernel==='linear'?'<div class="callout orange" style="margin-top:10px">For the second test point, the uploaded sheet shows K(x₁,x′₂)=2. The correct dot product is 1×1+2×1+1×1=<b>4</b>, changing that decision score from 5 to <b>9</b>.</div>':'<div class="callout orange" style="margin-top:10px">The uploaded RBF walkthrough takes a square root before the exponential. Standard Gaussian RBF uses the <b>squared</b> Euclidean distance directly. With γ=0.1, the corrected scores are approximately <b>−10.2199</b> for x′₁ and <b>11.3283</b> for x′₂.</div>');
+  drawSvmGeometry();
+}
+renderSvm();
+$('#svmKernel').addEventListener('change',()=>{$('#svmRow').value=0;renderSvm()});$('#svmTest').addEventListener('change',()=>{$('#svmRow').value=0;renderSvm()});$('#svmRow').addEventListener('input',renderSvm);
+$('#svmPrev').addEventListener('click',()=>{$('#svmRow').value=clamp(Number($('#svmRow').value)-1,0,5);renderSvm()});
+$('#svmNext').addEventListener('click',()=>{$('#svmRow').value=clamp(Number($('#svmRow').value)+1,0,5);renderSvm()});
+$('#svmAuto').addEventListener('click',()=>{if(svmTimer)return;let r=Number($('#svmRow').value);if(r>=5)r=-1;svmTimer=setInterval(()=>{r++;$('#svmRow').value=r;renderSvm();if(r>=5){clearInterval(svmTimer);svmTimer=null}},900)});
+$('#svmPause').addEventListener('click',()=>{if(svmTimer){clearInterval(svmTimer);svmTimer=null}});
+
 })();
 </script>
 <!-- build-version: lstm-v1-2026-09-21 -->
