@@ -12,6 +12,6 @@ The application is completely static: no Python server or backend is required.
 
 ## GitHub Pages
 
-After enabling GitHub Pages for the `main` branch/root folder in repository settings, the site is available at:
+The site is available at:
 
 https://sharonchrista.github.io/dl_demo/
