@@ -22,9 +22,9 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 </head>
 <body>
 <main class="app">
-<header class="hero"><div><h1>Deep Learning Visual Lab</h1><p>Interactive classroom demonstrator for <b>Linear Regression</b>, <b>Decision Trees</b>, <b>SVM</b>, <b>ANN</b>, <b>CNN</b>, <b>RNN</b>, <b>RGB CNN</b>, and <b>LSTM</b>. The purpose is not to hide training behind a library call: every multiplication, addition, activation, loss term, gradient, and weight update is shown explicitly.</p></div><div class="badge">Teaching mode · detailed arithmetic · LSTM build v1</div></header>
+<header class="hero"><div><h1>Deep Learning Visual Lab</h1><p>Interactive classroom demonstrator for <b>Linear Regression</b>, <b>Decision Trees</b>, <b>SVM</b>, <b>ANN</b>, <b>CNN</b>, <b>RNN</b>, <b>RGB CNN</b>, and <b>LSTM</b>. The purpose is not to hide training behind a library call: every multiplication, addition, activation, loss term, gradient, and weight update is shown explicitly.</p></div><div class="badge">Teaching mode · classifiers fixed · build 2026-09-21b</div></header>
 <nav class="tabs" aria-label="Lab sections">
-<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button><button class="tab" data-tab="linreg">6 · Linear Regression</button><button class="tab" data-tab="dtree">7 · Decision Tree</button><button class="tab" data-tab="svm">8 · SVM</button>
+<button class="tab active" data-tab="ann">1 · ANN</button><button class="tab" data-tab="cnn">2 · CNN</button><button class="tab" data-tab="rnn">3 · RNN</button><button class="tab" data-tab="rgb">4 · RGB CNN Cat</button><button class="tab" data-tab="lstm">5 · LSTM</button><button class="tab" data-tab="linreg">6 · Linear Classifier</button><button class="tab" data-tab="dtree">7 · Decision Tree</button><button class="tab" data-tab="svm">8 · SVM</button>
 </nav>
 
 <section id="ann" class="panel active">
@@ -97,10 +97,38 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 
 <section id="linreg" class="panel">
 <div class="grid">
-<aside class="card"><h2>Linear Regression: Cats & Dogs</h2><p class="hint"><b>Illustrative synthetic dataset.</b> We use 10 animals and predict <b>whisker length (cm)</b> from <b>ear flappiness</b>.</p><div class="callout"><b>Feature x:</b> Ear flappiness score (0 = rigid, 10 = very floppy)<br><b>Target Y:</b> Whisker length in cm<br><br><b>Model:</b> Ŷ = b₀ + b₁x</div><div class="controls"><button id="lrPrev" class="secondary">← Previous epoch</button><button id="lrNext" class="secondary">Next epoch →</button><button id="lrGdAuto" class="secondary">▶ Animate 1→5</button><button id="lrGdPause" class="secondary">⏸ Pause</button></div><button id="lrClosed" class="primary">Show least-squares derivation</button></aside>
+<aside class="card">
+<h2>Linear Classifier: Cat vs Dog</h2>
+<p class="hint">Inputs: <b>Ear Flappiness</b> and <b>Whisker Length</b>. Target: <b>Cat = 1</b>, <b>Dog = 0</b>.</p>
+<div class="callout"><b>Linear score</b><br>z = b + w₁·Ear + w₂·Whisker<br><br><b>Probability</b><br>P(Cat)=σ(z)=1/(1+e<sup>−z</sup>)<br><br>Threshold 0.5 → Cat or Dog</div>
+<div class="controls">
+<button id="lrPrev" class="secondary">← Previous epoch</button>
+<button id="lrNext" class="secondary">Next epoch →</button>
+<button id="lrGdAuto" class="secondary">▶ Animate 1→5</button>
+<button id="lrGdPause" class="secondary">⏸ Pause</button>
+</div>
+</aside>
 <div class="stack">
-<div class="card"><div class="metric-row"><div class="metric"><small>Training epoch</small><strong id="lrEpochLabel">1 / 5</strong></div><div class="metric"><small>Current slope b₁</small><strong id="lrSlope">–</strong></div><div class="metric"><small>Current intercept b₀</small><strong id="lrIntercept">–</strong></div><div class="metric"><small>Current MSE</small><strong id="lrMse">–</strong></div></div><div class="slider-row"><span>1</span><input id="lrEpoch" type="range" min="1" max="5" value="1"><span>5</span></div></div>
-<div class="card"><div class="two"><div><h3>Training prog<section id="dtree" class="panel">
+<div class="card"><div class="metric-row">
+<div class="metric"><small>Epoch</small><strong id="lrEpochLabel">1 / 5</strong></div>
+<div class="metric"><small>w₁ (Ear)</small><strong id="lrW1">–</strong></div>
+<div class="metric"><small>w₂ (Whisker)</small><strong id="lrW2">–</strong></div>
+<div class="metric"><small>Bias b</small><strong id="lrBias">–</strong></div>
+<div class="metric"><small>Binary cross-entropy</small><strong id="lrLoss">–</strong></div>
+</div><div class="slider-row"><span>1</span><input id="lrEpoch" type="range" min="1" max="5" value="1"><span>5</span></div></div>
+
+<div class="card"><div class="two">
+<div><h3>Decision boundary training progression</h3><canvas id="lrCanvas" width="660" height="390" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">Purple = Cat, orange = Dog. Earlier boundaries remain faintly visible; the current epoch is emphasized.</p></div>
+<div><h3>Loss over 5 epochs</h3><canvas id="lrLossCanvas" width="480" height="300" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas></div>
+</div></div>
+
+<div class="card"><h3>10-row Cat/Dog dataset</h3><div id="lrData" class="tablewrap"></div></div>
+<div id="lrGdMath" class="card"></div>
+<div class="card"><h3>Actual class vs predicted probability</h3><div id="lrPredTable" class="tablewrap"></div></div>
+</div></div>
+</section>
+
+<section id="dtree" class="panel">
 <div class="grid">
 <aside class="card"><h2>Decision Tree: Loves Batman?</h2><p class="hint">Build the complete tree one split at a time. Target: <b>Loves Batman</b>. Predictors: <b>Age</b>, <b>Loves Movies</b>, and <b>Loves Cartoons</b>.</p>
 <div class="callout green"><b>Choose split criterion</b><div class="controls" style="margin-top:8px"><button id="dtGiniBtn" class="secondary">Gini Impurity</button><button id="dtEntropyBtn" class="secondary">Entropy / Information Gain</button></div></div>
@@ -109,24 +137,17 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 <button id="dtFinalTree" class="primary">Show Final Tree</button>
 </aside>
 <div class="stack">
-<div class="card"><div class="metric-row"><div class="metric"><small>Build step</small><strong id="dtStepLabel">0 / 4</strong></div><div class="metric"><small>Current node</small><strong id="dtNodeLabel">Root</strong></div><div class="metric"><small>Criterion</small><strong id="dtCriterionLabel">Gini impurity</strong></div><div class="metric"><small>Tree status</small><strong id="dtStatusLabel">Starting</strong></div></div><div class="slider-row"><span>Start</span><input id="dtBuildStep" type="range" min="0" max="4" value="0"><span>Final</span></div></div>
-<div class="card"><h3>12-row training dataset</h3><p class="hint">1 = Yes/True, 0 = No/False. The rows belonging to the node currently being split are highlighted.</p><div id="dtData" class="tablewrap"></div></div>
+<div class="card"><div class="metric-row">
+<div class="metric"><small>Build step</small><strong id="dtStepLabel">0 / 4</strong></div>
+<div class="metric"><small>Current node</small><strong id="dtNodeLabel">Root</strong></div>
+<div class="metric"><small>Criterion</small><strong id="dtCriterionLabel">Gini impurity</strong></div>
+<div class="metric"><small>Tree status</small><strong id="dtStatusLabel">Starting</strong></div>
+</div><div class="slider-row"><span>Start</span><input id="dtBuildStep" type="range" min="0" max="4" value="0"><span>Final</span></div></div>
+<div class="card"><h3>12-row training dataset</h3><p class="hint">1 = Yes/True, 0 = No/False. Rows belonging to the node currently being split are highlighted.</p><div id="dtData" class="tablewrap"></div></div>
 <div class="card"><h3>Tree construction — current stage</h3><div id="dtTreeBuild" class="dt-tree-stage"></div></div>
 <div id="dtMath" class="card"></div>
 <div class="card"><h3>Candidate splits at the current node</h3><div id="dtRanking" class="tablewrap"></div></div>
-<div class="card"><h3>Final complete tree</h3><p class="hint">This panel always shows the final tree for the selected criterion; the panel above shows how it is constructed step by step.</p><div id="dtFinalTreeView" class="dt-tree-stage"></div></div>
-</div></div>
-</section>
-
-split<select id="dtCandidate"></select></label>
-<button id="dtBest" class="primary">Jump to best split</button>
-</aside>
-<div class="stack">
-<div class="card"><h3>12-row training dataset</h3><p class="hint">1 = Yes/True, 0 = No/False.</p><div id="dtData" class="tablewrap"></div></div>
-<div class="card"><div class="two"><div><h3>Selected split visualization</h3><canvas id="dtCanvas" width="640" height="360" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas></div><div><h3>Current split summary</h3><div id="dtSplitSummary"></div></div></div></div>
-<div id="dtMath" class="card"></div>
-<div class="card"><h3>All candidate splits ranked by gain</h3><div id="dtRanking" class="tablewrap"></div></div>
-<div class="card"><h3>Best first-level tree for selected criterion</h3><div id="dtTree"></div></div>
+<div class="card"><h3>Final complete tree</h3><div id="dtFinalTreeView" class="dt-tree-stage"></div></div>
 </div></div>
 </section>
 
@@ -472,67 +493,73 @@ $('#rnnNextEpoch').addEventListener('click',()=>{stopRnnAuto();setRnn(Number($('
 $('#rnnAuto').addEventListener('click',startRnnAuto);$('#rnnPause').addEventListener('click',()=>{stopRnnAuto();$('#rnnStatus').textContent='RNN animation paused.'});
 rnnTrain();setRnn(1,0);
 
-// Linear Regression — shared cat/dog teaching dataset
+// Linear classifier — Ear Flappiness + Whisker Length -> Cat / Dog
 const petRows=[
- {id:'C1',animal:'Cat',ear:1.2,whisker:8.4,y:1},{id:'C2',animal:'Cat',ear:1.8,whisker:8.0,y:1},
- {id:'C3',animal:'Cat',ear:2.4,whisker:7.7,y:1},{id:'C4',animal:'Cat',ear:3.0,whisker:7.4,y:1},
- {id:'C5',animal:'Cat',ear:3.5,whisker:7.1,y:1},{id:'D1',animal:'Dog',ear:5.2,whisker:5.9,y:-1},
- {id:'D2',animal:'Dog',ear:5.9,whisker:5.5,y:-1},{id:'D3',animal:'Dog',ear:6.7,whisker:5.1,y:-1},
- {id:'D4',animal:'Dog',ear:7.4,whisker:4.7,y:-1},{id:'D5',animal:'Dog',ear:8.2,whisker:4.3,y:-1}
+ {id:"C1",animal:"Cat",ear:1.2,whisker:8.4,y:1},
+ {id:"C2",animal:"Cat",ear:1.8,whisker:8.0,y:1},
+ {id:"C3",animal:"Cat",ear:2.4,whisker:7.7,y:1},
+ {id:"C4",animal:"Cat",ear:3.0,whisker:7.4,y:1},
+ {id:"C5",animal:"Cat",ear:3.5,whisker:7.1,y:1},
+ {id:"D1",animal:"Dog",ear:5.2,whisker:5.9,y:0},
+ {id:"D2",animal:"Dog",ear:5.9,whisker:5.5,y:0},
+ {id:"D3",animal:"Dog",ear:6.7,whisker:5.1,y:0},
+ {id:"D4",animal:"Dog",ear:7.4,whisker:4.7,y:0},
+ {id:"D5",animal:"Dog",ear:8.2,whisker:4.3,y:0}
 ];
-let lrGd=[],lrTimer=null;
-function lrClosedForm(){
-  const x=petRows.map(r=>r.ear),y=petRows.map(r=>r.whisker),n=x.length,xbar=x.reduce((a,b)=>a+b,0)/n,ybar=y.reduce((a,b)=>a+b,0)/n;
-  const num=x.reduce((s,v,i)=>s+(v-xbar)*(y[i]-ybar),0),den=x.reduce((s,v)=>s+(v-xbar)*(v-xbar),0),b1=num/den,b0=ybar-b1*xbar;
-  const pred=x.map(v=>b0+b1*v),res=y.map((v,i)=>v-pred[i]),mse=res.reduce((s,v)=>s+v*v,0)/n;
-  return {x,y,n,xbar,ybar,num,den,b1,b0,pred,res,mse};
+let lrHist=[],lrTimer=null;
+function lrStats(){
+  const e=petRows.map(r=>r.ear),w=petRows.map(r=>r.whisker);
+  const me=e.reduce((a,b)=>a+b,0)/e.length,mw=w.reduce((a,b)=>a+b,0)/w.length;
+  const se=Math.sqrt(e.reduce((s,v)=>s+(v-me)*(v-me),0)/e.length),sw=Math.sqrt(w.reduce((s,v)=>s+(v-mw)*(v-mw),0)/w.length);
+  return {me,mw,se,sw};
 }
-function buildLrGd(){
-  const cf=lrClosedForm(),xc=cf.x.map(v=>v-cf.xbar),eta=.05;let a=cf.ybar,b1=0;lrGd=[];
-  for(let e=1;e<=5;e++){
-    const pred=xc.map(v=>a+b1*v),err=pred.map((p,i)=>p-cf.y[i]),mse=err.reduce((s,v)=>s+v*v,0)/cf.n;
-    const da=(2/cf.n)*err.reduce((s,v)=>s+v,0),db1=(2/cf.n)*err.reduce((s,v,i)=>s+v*xc[i],0);
-    const old={a,b1},rawB0=a-b1*cf.xbar;
-    a-=eta*da;b1-=eta*db1;
-    lrGd.push({e,eta,old,rawB0,pred,err,mse,da,db1,newv:{a,b1,rawB0:a-b1*cf.xbar}});
+function lrZ(r,st){return [(r.ear-st.me)/st.se,(r.whisker-st.mw)/st.sw]}
+function buildLr(){
+  const st=lrStats(),eta=.35,n=petRows.length;let w=[0,0],b=0;lrHist=[];
+  for(let ep=1;ep<=5;ep++){
+    const rows=petRows.map(r=>{const z=lrZ(r,st),score=w[0]*z[0]+w[1]*z[1]+b,p=sigmoid(score),ce=-(r.y*Math.log(Math.max(p,1e-9))+(1-r.y)*Math.log(Math.max(1-p,1e-9)));return {...r,z,score,p,ce,pred:p>=.5?1:0};});
+    const loss=rows.reduce((s,r)=>s+r.ce,0)/n;
+    const dw=[rows.reduce((s,r)=>s+(r.p-r.y)*r.z[0],0)/n,rows.reduce((s,r)=>s+(r.p-r.y)*r.z[1],0)/n];
+    const db=rows.reduce((s,r)=>s+(r.p-r.y),0)/n,old={w:w.slice(),b};
+    w=[w[0]-eta*dw[0],w[1]-eta*dw[1]];b-=eta*db;
+    lrHist.push({ep,st,eta,rows,loss,dw,db,old,nw:{w:w.slice(),b}});
   }
 }
-function lrMap(cv){
-  const p=48,W=cv.width,H=cv.height;
-  return {sx:x=>p+((x-0)/(9-0))*(W-2*p),sy:y=>H-p-((y-3.5)/(9-3.5))*(H-2*p),p,W,H};
+function lrBoundaryY(g,ear,level=0){
+  const w=g.nw.w,b=g.nw.b,st=g.st;if(Math.abs(w[1])<1e-9)return null;
+  const ze=(ear-st.me)/st.se,zw=(level-b-w[0]*ze)/w[1];
+  return st.mw+st.sw*zw;
 }
 function drawLr(){
-  const cv=$('#lrCanvas'),ctx=cv.getContext('2d'),m=lrMap(cv),epoch=Number($('#lrEpoch').value);
-  ctx.clearRect(0,0,m.W,m.H);ctx.strokeStyle='#e3e8f0';ctx.lineWidth=1;
-  for(let x=0;x<=9;x++){ctx.beginPath();ctx.moveTo(m.sx(x),m.p);ctx.lineTo(m.sx(x),m.H-m.p);ctx.stroke();}
-  for(let y=4;y<=9;y++){ctx.beginPath();ctx.moveTo(m.p,m.sy(y));ctx.lineTo(m.W-m.p,m.sy(y));ctx.stroke();}
-  for(let e=1;e<=epoch;e++){const g=lrGd[e-1],b0=g.newv.rawB0,b1=g.newv.b1;ctx.strokeStyle=e===epoch?'#2563eb':'rgba(37,99,235,.22)';ctx.lineWidth=e===epoch?4:2;ctx.beginPath();ctx.moveTo(m.sx(0),m.sy(b0));ctx.lineTo(m.sx(9),m.sy(b0+b1*9));ctx.stroke();}
-  petRows.forEach(r=>{ctx.fillStyle=r.animal==='Cat'?'#7c3aed':'#c2410c';ctx.beginPath();ctx.arc(m.sx(r.ear),m.sy(r.whisker),7,0,Math.PI*2);ctx.fill();});
-  ctx.fillStyle='#42516a';ctx.font='13px sans-serif';ctx.fillText('Ear flappiness →',m.W-135,m.H-14);ctx.save();ctx.translate(17,m.H/2+60);ctx.rotate(-Math.PI/2);ctx.fillText('Whisker length (cm)',0,0);ctx.restore();
+  const cv=$("#lrCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=50,ep=Number($("#lrEpoch").value),sx=x=>p+(x/9)*(W-2*p),sy=y=>H-p-((y-3.5)/(9-3.5))*(H-2*p);
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle="#e3e8f0";ctx.lineWidth=1;
+  for(let x=0;x<=9;x++){ctx.beginPath();ctx.moveTo(sx(x),p);ctx.lineTo(sx(x),H-p);ctx.stroke();}
+  for(let y=4;y<=9;y++){ctx.beginPath();ctx.moveTo(p,sy(y));ctx.lineTo(W-p,sy(y));ctx.stroke();}
+  for(let e=1;e<=ep;e++){const g=lrHist[e-1],y0=lrBoundaryY(g,0),y9=lrBoundaryY(g,9);if(y0!==null){ctx.strokeStyle=e===ep?"#2563eb":"rgba(37,99,235,.20)";ctx.lineWidth=e===ep?4:2;ctx.beginPath();ctx.moveTo(sx(0),sy(y0));ctx.lineTo(sx(9),sy(y9));ctx.stroke();}}
+  petRows.forEach(r=>{ctx.fillStyle=r.y===1?"#7c3aed":"#c2410c";ctx.beginPath();ctx.arc(sx(r.ear),sy(r.whisker),7,0,Math.PI*2);ctx.fill();});
+  ctx.fillStyle="#42516a";ctx.font="13px sans-serif";ctx.fillText("Ear flappiness →",W-135,H-14);ctx.save();ctx.translate(17,H/2+60);ctx.rotate(-Math.PI/2);ctx.fillText("Whisker length",0,0);ctx.restore();
 }
 function drawLrLoss(){
-  const cv=$('#lrLossCanvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height,p=42,epoch=Number($('#lrEpoch').value),vals=lrGd.map(g=>g.mse),max=Math.max(...vals)*1.12,min=0;
-  ctx.clearRect(0,0,W,H);ctx.strokeStyle='#e3e8f0';for(let i=0;i<5;i++){const y=p+i*(H-2*p)/4;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(W-p,y);ctx.stroke();}
-  const sx=e=>p+((e-1)/4)*(W-2*p),sy=v=>H-p-((v-min)/(max-min))*(H-2*p);
-  ctx.strokeStyle='#15803d';ctx.lineWidth=3;ctx.beginPath();vals.forEach((v,i)=>{if(i===0)ctx.moveTo(sx(i+1),sy(v));else ctx.lineTo(sx(i+1),sy(v))});ctx.stroke();
-  vals.forEach((v,i)=>{ctx.fillStyle=(i+1)===epoch?'#15803d':'#9fb8a7';ctx.beginPath();ctx.arc(sx(i+1),sy(v),6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#42516a';ctx.font='12px sans-serif';ctx.fillText(String(i+1),sx(i+1)-3,H-17);});
-  ctx.fillStyle='#42516a';ctx.font='12px sans-serif';ctx.fillText('MSE',8,22);ctx.fillText('Epoch',W-48,H-17);
+  const cv=$("#lrLossCanvas"),ctx=cv.getContext("2d"),W=cv.width,H=cv.height,p=42,ep=Number($("#lrEpoch").value),vals=lrHist.map(g=>g.loss),max=Math.max(...vals)*1.15;
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle="#e3e8f0";for(let i=0;i<5;i++){const y=p+i*(H-2*p)/4;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(W-p,y);ctx.stroke();}
+  const sx=e=>p+((e-1)/4)*(W-2*p),sy=v=>H-p-(v/max)*(H-2*p);ctx.strokeStyle="#15803d";ctx.lineWidth=3;ctx.beginPath();vals.forEach((v,i)=>{if(!i)ctx.moveTo(sx(i+1),sy(v));else ctx.lineTo(sx(i+1),sy(v))});ctx.stroke();
+  vals.forEach((v,i)=>{ctx.fillStyle=(i+1)===ep?"#15803d":"#9fb8a7";ctx.beginPath();ctx.arc(sx(i+1),sy(v),6,0,Math.PI*2);ctx.fill();ctx.fillStyle="#42516a";ctx.font="12px sans-serif";ctx.fillText(String(i+1),sx(i+1)-3,H-17);});
 }
 function renderLr(){
-  const cf=lrClosedForm(),e=Number($('#lrEpoch').value),g=lrGd[e-1];drawLr();drawLrLoss();
-  $('#lrEpochLabel').textContent=e+' / 5';$('#lrSlope').textContent=fmt(g.newv.b1);$('#lrIntercept').textContent=fmt(g.newv.rawB0);$('#lrMse').textContent=fmt(g.mse);
-  $('#lrData').innerHTML='<table class="tbl"><thead><tr><th>ID</th><th>Animal</th><th>Ear flappiness x</th><th>Whisker length Y (cm)</th></tr></thead><tbody>'+petRows.map(r=>'<tr><td>'+r.id+'</td><td>'+r.animal+'</td><td>'+fmt(r.ear,1)+'</td><td>'+fmt(r.whisker,1)+'</td></tr>').join('')+'</tbody></table>';
-  $('#lrGdMath').innerHTML='<div class="kicker">Gradient descent · Epoch '+e+'</div><h3>Watch the line move</h3><p class="lead">For a stable five-step classroom animation, training uses the centered feature x_c=x−x̄. This is the same straight-line model, just re-parameterized.</p><div class="math">x̄ = '+fmt(cf.xbar)+'; x_c = x − '+fmt(cf.xbar)+'<br>Ŷ = a + b₁x_c<br><br>Start of epoch '+e+': a='+fmt(g.old.a)+', b₁='+fmt(g.old.b1)+'<br>MSE = (1/n)Σ(Ŷ−Y)² = <b>'+fmt(g.mse)+'</b><br><br>∂MSE/∂a = (2/n)Σ(Ŷ−Y) = <b>'+fmt(g.da)+'</b><br>∂MSE/∂b₁ = (2/n)Σ(Ŷ−Y)x_c = <b>'+fmt(g.db1)+'</b><br><br>a(new) = '+fmt(g.old.a)+' − '+fmt(g.eta)+'×('+fmt(g.da)+') = <b>'+fmt(g.newv.a)+'</b><br>b₁(new) = '+fmt(g.old.b1)+' − '+fmt(g.eta)+'×('+fmt(g.db1)+') = <b>'+fmt(g.newv.b1)+'</b><br><br>Convert back to the ordinary line Ŷ=b₀+b₁x:<br>b₀ = a − b₁x̄ = <b>'+fmt(g.newv.rawB0)+'</b></div>';
-  $('#lrMath').innerHTML='<div class="kicker">Least-squares reference solution</div><h3>Where gradient descent is trying to go</h3><div class="math">b₁ = Σ(x−x̄)(Y−Ȳ) / Σ(x−x̄)²<br>= '+fmt(cf.num)+' / '+fmt(cf.den)+' = <b>'+fmt(cf.b1)+'</b><br><br>b₀ = Ȳ − b₁x̄ = '+fmt(cf.ybar)+' − '+fmt(cf.b1)+'×'+fmt(cf.xbar)+' = <b>'+fmt(cf.b0)+'</b><br><br>Best-fit line: <b>Ŷ = '+fmt(cf.b0,4)+' '+(cf.b1<0?'− ':'+ ')+fmt(Math.abs(cf.b1),4)+'x</b><br>Least-squares MSE = <b>'+fmt(cf.mse)+'</b></div>';
-  const curPred=petRows.map(r=>g.newv.rawB0+g.newv.b1*r.ear);
-  $('#lrResiduals').innerHTML='<table class="tbl"><thead><tr><th>ID</th><th>Actual Y</th><th>Predicted Ŷ</th><th>Residual Y−Ŷ</th><th>(Y−Ŷ)²</th></tr></thead><tbody>'+petRows.map((r,i)=>{const er=r.whisker-curPred[i];return '<tr><td>'+r.id+'</td><td>'+fmt(r.whisker,3)+'</td><td>'+fmt(curPred[i],3)+'</td><td>'+fmt(er,3)+'</td><td>'+fmt(er*er,4)+'</td></tr>'}).join('')+'</tbody></table>';
+  const e=Number($("#lrEpoch").value),g=lrHist[e-1];drawLr();drawLrLoss();
+  $("#lrEpochLabel").textContent=e+" / 5";$("#lrW1").textContent=fmt(g.nw.w[0]);$("#lrW2").textContent=fmt(g.nw.w[1]);$("#lrBias").textContent=fmt(g.nw.b);$("#lrLoss").textContent=fmt(g.loss);
+  $("#lrData").innerHTML='<table class="tbl"><thead><tr><th>ID</th><th>Animal</th><th>Ear Flappiness</th><th>Whisker Length</th><th>Target Y</th></tr></thead><tbody>'+petRows.map(r=>'<tr><td>'+r.id+'</td><td>'+r.animal+'</td><td>'+fmt(r.ear,1)+'</td><td>'+fmt(r.whisker,1)+'</td><td>'+r.y+'</td></tr>').join("")+'</tbody></table>';
+  $("#lrGdMath").innerHTML='<div class="kicker">Epoch '+e+'</div><h3>Forward pass, loss and gradient update</h3><div class="math">Standardize the two inputs first:<br>z₁=(Ear−'+fmt(g.st.me)+')/'+fmt(g.st.se)+'<br>z₂=(Whisker−'+fmt(g.st.mw)+')/'+fmt(g.st.sw)+'<br><br>For each row:<br>s = w₁z₁+w₂z₂+b<br>P(Cat)=σ(s)<br>Binary cross-entropy = −[Y ln(P)+(1−Y)ln(1−P)]<br><br>Mean loss = <b>'+fmt(g.loss)+'</b><br><br>∂L/∂w₁ = mean[(P−Y)z₁] = <b>'+fmt(g.dw[0])+'</b><br>∂L/∂w₂ = mean[(P−Y)z₂] = <b>'+fmt(g.dw[1])+'</b><br>∂L/∂b = mean[P−Y] = <b>'+fmt(g.db)+'</b><br><br>w₁(new) = '+fmt(g.old.w[0])+' − '+fmt(g.eta)+'×('+fmt(g.dw[0])+') = <b>'+fmt(g.nw.w[0])+'</b><br>w₂(new) = '+fmt(g.old.w[1])+' − '+fmt(g.eta)+'×('+fmt(g.dw[1])+') = <b>'+fmt(g.nw.w[1])+'</b><br>b(new) = '+fmt(g.old.b)+' − '+fmt(g.eta)+'×('+fmt(g.db)+') = <b>'+fmt(g.nw.b)+'</b></div>';
+  const rows=petRows.map(r=>{const z=lrZ(r,g.st),score=g.nw.w[0]*z[0]+g.nw.w[1]*z[1]+g.nw.b,p=sigmoid(score),pred=p>=.5?1:0;return {...r,p,pred}});
+  $("#lrPredTable").innerHTML='<table class="tbl"><thead><tr><th>ID</th><th>Actual Y</th><th>P(Cat)</th><th>Predicted Y</th><th>Predicted class</th></tr></thead><tbody>'+rows.map(r=>'<tr class="'+(r.pred===r.y?"":"selected")+'"><td>'+r.id+'</td><td>'+r.y+'</td><td>'+fmt(r.p,4)+'</td><td>'+r.pred+'</td><td>'+(r.pred?"Cat":"Dog")+'</td></tr>').join("")+'</tbody></table>';
 }
-buildLrGd();renderLr();
+buildLr();renderLr();
 function stopLr(){if(lrTimer){clearInterval(lrTimer);lrTimer=null}}
-$('#lrEpoch').addEventListener('input',()=>{stopLr();renderLr()});$('#lrPrev').addEventListener('click',()=>{stopLr();$('#lrEpoch').value=clamp(Number($('#lrEpoch').value)-1,1,5);renderLr()});$('#lrNext').addEventListener('click',()=>{stopLr();$('#lrEpoch').value=clamp(Number($('#lrEpoch').value)+1,1,5);renderLr()});
-$('#lrClosed').addEventListener('click',()=>{$('#lrMath').scrollIntoView({behavior:'smooth',block:'center'})});
-$('#lrGdAuto').addEventListener('click',()=>{if(lrTimer)return;let e=Number($('#lrEpoch').value);if(e>=5)e=0;lrTimer=setInterval(()=>{e++;$('#lrEpoch').value=e;renderLr();if(e>=5)stopLr()},1050)});$('#lrGdPause').addEventListener('click',stopLr);
-
+$("#lrEpoch").addEventListener("input",()=>{stopLr();renderLr()});
+$("#lrPrev").addEventListener("click",()=>{stopLr();$("#lrEpoch").value=clamp(Number($("#lrEpoch").value)-1,1,5);renderLr()});
+$("#lrNext").addEventListener("click",()=>{stopLr();$("#lrEpoch").value=clamp(Number($("#lrEpoch").value)+1,1,5);renderLr()});
+$("#lrGdAuto").addEventListener("click",()=>{if(lrTimer)return;let e=Number($("#lrEpoch").value);if(e>=5)e=0;lrTimer=setInterval(()=>{e++;$("#lrEpoch").value=e;renderLr();if(e>=5)stopLr()},1050)});
+$("#lrGdPause").addEventListener("click",stopLr);
 
 
 // Decision Tree — full greedy tree builder
