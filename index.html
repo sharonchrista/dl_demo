@@ -126,16 +126,60 @@ button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,inpu
 </section>
 
 <section id="svm" class="panel">
-<div class="card"><h2>SVM: Cat vs Dog using Ear Flappiness + Whisker Length</h2><p class="lead">The same 10-row illustrative dataset is now used for a classification task. <b>Cat = +1</b> and <b>Dog = −1</b>. The graph shows the SVM decision boundary and margins changing over five training epochs.</p><div class="callout orange"><b>Connection to your uploaded SVM sheet:</b> the mathematical corrections remain in force: the linear kernel is a dot product, Gaussian RBF is exp(−γ‖x−x′‖²), the scalar f(x) is a decision score, and the decision boundary is f(x)=0.</div></div>
+<div class="card"><h2>SVM Classifier: Cat vs Dog</h2><p class="lead">Use <b>Ear Flappiness</b> and <b>Whisker Length</b> to classify an animal as <b>Cat (+1)</b> or <b>Dog (−1)</b>. The same 10-row synthetic teaching dataset is used throughout.</p>
+<div class="three" style="margin-top:12px">
+<div class="callout"><b>Linear kernel</b><br>K(x,z)=xᵀz<br><span class="hint">Straight separating boundary.</span></div>
+<div class="callout green"><b>RBF kernel</b><br>K(x,z)=exp(−γ‖x−z‖²)<br><span class="hint">Localized nonlinear similarity.</span></div>
+<div class="callout orange"><b>Polynomial kernel</b><br>K(x,z)=(γxᵀz+r)<sup>d</sup><br><span class="hint">Curved feature interactions.</span></div>
+</div></div>
+
 <div class="grid" style="margin-top:14px">
-<aside class="card"><h3>Linear SVM training</h3><div class="field">Training epochs<div class="math tiny">Fixed: 5 epochs</div></div><div class="slider-row"><span>1</span><input id="svmEpoch" type="range" min="1" max="5" value="1"><span>5</span></div><div class="controls"><button id="svmPrevEpoch" class="secondary">← Previous</button><button id="svmNextEpoch" class="secondary">Next →</button><button id="svmTrainAuto" class="secondary">▶ Animate 1→5</button><button id="svmTrainPause" class="secondary">⏸ Pause</button></div><h3 style="margin-top:16px">Try a new animal</h3><label class="field">Ear flappiness<input id="svmTestEar" type="number" step="0.1" value="4.4"></label><label class="field" style="margin-top:8px">Whisker length (cm)<input id="svmTestWhisker" type="number" step="0.1" value="6.4"></label><button id="svmClassify" class="primary">Classify test animal</button></aside>
+<aside class="card">
+<label class="field">SVM kernel
+<select id="svmKernelChoice">
+<option value="linear">Linear</option>
+<option value="rbf">RBF / Gaussian</option>
+<option value="poly">Polynomial</option>
+</select></label>
+
+<div id="svmKernelParams" style="margin-top:10px"></div>
+
+<h3 style="margin-top:16px">Linear SVM training</h3>
+<p class="hint">The 5-epoch moving hyperplane animation illustrates optimization for the linear SVM. The RBF and Polynomial options below visualize how kernel similarity changes the decision function.</p>
+<div class="slider-row"><span>1</span><input id="svmEpoch" type="range" min="1" max="5" value="1"><span>5</span></div>
+<div class="controls"><button id="svmPrevEpoch" class="secondary">← Previous</button><button id="svmNextEpoch" class="secondary">Next →</button><button id="svmTrainAuto" class="secondary">▶ Animate 1→5</button><button id="svmTrainPause" class="secondary">⏸ Pause</button></div>
+
+<h3 style="margin-top:16px">Try a new animal</h3>
+<label class="field">Ear flappiness<input id="svmTestEar" type="number" step="0.1" value="4.4"></label>
+<label class="field" style="margin-top:8px">Whisker length (cm)<input id="svmTestWhisker" type="number" step="0.1" value="6.4"></label>
+<button id="svmClassify" class="primary">Classify test animal</button>
+</aside>
+
 <div class="stack">
-<div class="card"><div class="metric-row"><div class="metric"><small>Epoch</small><strong id="svmEpochLabel">1 / 5</strong></div><div class="metric"><small>Objective J</small><strong id="svmObjective">–</strong></div><div class="metric"><small>Margin violators</small><strong id="svmViolators">–</strong></div><div class="metric"><small>Test prediction</small><strong id="svmPred">–</strong></div></div></div>
-<div class="card"><div class="two"><div><h3>Training progression: boundary + margins</h3><canvas id="svmCanvas" width="660" height="390" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">Solid line: f(x)=0. Dashed lines: f(x)=+1 and f(x)=−1. Ringed samples currently lie on/inside the margin.</p></div><div><h3>SVM objective progression</h3><canvas id="svmLossCanvas" width="480" height="300" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas></div></div></div>
-<div class="card"><h3>10-row training dataset</h3><div id="svmTable" class="tablewrap"></div></div>
+<div class="card"><div class="metric-row">
+<div class="metric"><small>Epoch</small><strong id="svmEpochLabel">1 / 5</strong></div>
+<div class="metric"><small>Linear objective J</small><strong id="svmObjective">–</strong></div>
+<div class="metric"><small>Margin violators</small><strong id="svmViolators">–</strong></div>
+<div class="metric"><small>Selected-kernel prediction</small><strong id="svmPred">–</strong></div>
+</div></div>
+
+<div class="card"><div class="two">
+<div><h3>Linear SVM training progression</h3><canvas id="svmCanvas" width="660" height="390" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas><p class="hint">Solid line: f(x)=0. Dashed lines: margins f(x)=+1 and f(x)=−1.</p></div>
+<div><h3>Linear SVM objective progression</h3><canvas id="svmLossCanvas" width="480" height="300" style="width:100%;border:1px solid var(--line);border-radius:10px"></canvas></div>
+</div></div>
+
+<div class="card"><h3>10-row Cat/Dog training dataset</h3><div id="svmTable" class="tablewrap"></div></div>
 <div id="svmTrainMath" class="card"></div>
+
+<div class="card"><h3>Kernel calculation — step by step</h3>
+<div class="form-grid">
+<label class="field">Training row<select id="svmKernelRow"></select></label>
+<div id="svmKernelParamControls"></div>
+</div>
+<div id="svmKernelMath" class="math" style="margin-top:10px"></div>
+</div>
+
 <div id="svmTestMath" class="card"></div>
-<div class="card"><h3>RBF kernel math extension</h3><p class="hint">This retains the kernel idea from your uploaded document, but applies it to the cat/dog features.</p><div class="form-grid"><label class="field">Training row<select id="svmRbfRow"></select></label><label class="field">γ<input id="svmGamma" type="number" step="0.05" value="0.5"></label></div><div id="svmRbfMath" class="math" style="margin-top:10px"></div></div>
 </div></div>
 </section>
 <footer class="footer">Deep Learning Visual Lab · ANN · CNN · RNN · RGB CNN · LSTM · Static browser application</footer>
@@ -683,29 +727,30 @@ $("#dtGiniBtn").addEventListener("click",()=>setDtCriterion("gini"));
 $("#dtEntropyBtn").addEventListener("click",()=>setDtCriterion("entropy"));
 setDtCriterion("gini");
 
-// SVM — same cat/dog data, linear primal training + RBF kernel math
+// SVM — Cat/Dog classifier with Linear, RBF and Polynomial kernels
 let svmHist=[],svmTimer=null;
 function svmStats(){
-  const e=petRows.map(r=>r.ear),w=petRows.map(r=>r.whisker),meanE=e.reduce((a,b)=>a+b,0)/e.length,meanW=w.reduce((a,b)=>a+b,0)/w.length;
+  const e=petRows.map(r=>r.ear),w=petRows.map(r=>r.whisker);
+  const meanE=e.reduce((a,b)=>a+b,0)/e.length,meanW=w.reduce((a,b)=>a+b,0)/w.length;
   const sdE=Math.sqrt(e.reduce((s,v)=>s+(v-meanE)*(v-meanE),0)/e.length),sdW=Math.sqrt(w.reduce((s,v)=>s+(v-meanW)*(v-meanW),0)/w.length);
   return {meanE,meanW,sdE,sdW};
 }
+function svmZ(r,st){return [(r.ear-st.meanE)/st.sdE,(r.whisker-st.meanW)/st.sdW]}
 function buildSvm(){
   const st=svmStats(),C=2,eta=.1,n=petRows.length;let w=[0,0],b=0;svmHist=[];
   for(let ep=1;ep<=5;ep++){
-    const rows=petRows.map(r=>{const z=[(r.ear-st.meanE)/st.sdE,(r.whisker-st.meanW)/st.sdW],score=w[0]*z[0]+w[1]*z[1]+b,margin=r.y*score,hinge=Math.max(0,1-margin);return {...r,z,score,margin,hinge,active:margin<1};});
+    const rows=petRows.map(r=>{const z=svmZ(r,st),score=w[0]*z[0]+w[1]*z[1]+b,margin=r.y*score,hinge=Math.max(0,1-margin);return {...r,z,score,margin,hinge,active:margin<1};});
     const obj=.5*(w[0]*w[0]+w[1]*w[1])+C*rows.reduce((s,r)=>s+r.hinge,0)/n;
-    const sum0=rows.filter(r=>r.active).reduce((s,r)=>s+r.y*r.z[0],0),sum1=rows.filter(r=>r.active).reduce((s,r)=>s+r.y*r.z[1],0),sumY=rows.filter(r=>r.active).reduce((s,r)=>s+r.y,0);
+    const active=rows.filter(r=>r.active);
+    const sum0=active.reduce((s,r)=>s+r.y*r.z[0],0),sum1=active.reduce((s,r)=>s+r.y*r.z[1],0),sumY=active.reduce((s,r)=>s+r.y,0);
     const dw=[w[0]-(C/n)*sum0,w[1]-(C/n)*sum1],db=-(C/n)*sumY,old={w:w.slice(),b};
-    w=[w[0]-eta*dw[0],w[1]-eta*dw[1]];b=b-eta*db;
+    w=[w[0]-eta*dw[0],w[1]-eta*dw[1]];b-=eta*db;
     svmHist.push({ep,C,eta,st,rows,obj,dw,db,old,nw:{w:w.slice(),b}});
   }
 }
 function svmOriginalLine(g,level,ear){
-  const w=g.nw.w,b=g.nw.b,st=g.st;
-  if(Math.abs(w[1])<1e-9)return null;
-  const zEar=(ear-st.meanE)/st.sdE;
-  const zWh=(level-b-w[0]*zEar)/w[1];
+  const w=g.nw.w,b=g.nw.b,st=g.st;if(Math.abs(w[1])<1e-9)return null;
+  const zEar=(ear-st.meanE)/st.sdE,zWh=(level-b-w[0]*zEar)/w[1];
   return st.meanW+st.sdW*zWh;
 }
 function drawSvm(){
@@ -713,8 +758,12 @@ function drawSvm(){
   ctx.clearRect(0,0,W,H);ctx.strokeStyle='#e3e8f0';ctx.lineWidth=1;
   for(let x=0;x<=9;x++){ctx.beginPath();ctx.moveTo(sx(x),p);ctx.lineTo(sx(x),H-p);ctx.stroke();}
   for(let y=4;y<=9;y++){ctx.beginPath();ctx.moveTo(p,sy(y));ctx.lineTo(W-p,sy(y));ctx.stroke();}
-  for(let oldEp=1;oldEp<=ep;oldEp++){const h=svmHist[oldEp-1],y0=svmOriginalLine(h,0,0),y9=svmOriginalLine(h,0,9);if(y0!==null){ctx.strokeStyle=oldEp===ep?'#2563eb':'rgba(37,99,235,.18)';ctx.lineWidth=oldEp===ep?4:2;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(sx(0),sy(y0));ctx.lineTo(sx(9),sy(y9));ctx.stroke();}}
-  [-1,1].forEach(level=>{const y0=svmOriginalLine(g,level,0),y9=svmOriginalLine(g,level,9);if(y0!==null){ctx.strokeStyle='#607089';ctx.lineWidth=2;ctx.setLineDash([8,6]);ctx.beginPath();ctx.moveTo(sx(0),sy(y0));ctx.lineTo(sx(9),sy(y9));ctx.stroke();}});ctx.setLineDash([]);
+  for(let oldEp=1;oldEp<=ep;oldEp++){
+    const h=svmHist[oldEp-1],y0=svmOriginalLine(h,0,0),y9=svmOriginalLine(h,0,9);
+    if(y0!==null){ctx.strokeStyle=oldEp===ep?'#2563eb':'rgba(37,99,235,.18)';ctx.lineWidth=oldEp===ep?4:2;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(sx(0),sy(y0));ctx.lineTo(sx(9),sy(y9));ctx.stroke();}
+  }
+  [-1,1].forEach(level=>{const y0=svmOriginalLine(g,level,0),y9=svmOriginalLine(g,level,9);if(y0!==null){ctx.strokeStyle='#607089';ctx.lineWidth=2;ctx.setLineDash([8,6]);ctx.beginPath();ctx.moveTo(sx(0),sy(y0));ctx.lineTo(sx(9),sy(y9));ctx.stroke();}});
+  ctx.setLineDash([]);
   g.rows.forEach(r=>{ctx.fillStyle=r.animal==='Cat'?'#7c3aed':'#c2410c';ctx.beginPath();ctx.arc(sx(r.ear),sy(r.whisker),7,0,Math.PI*2);ctx.fill();if(r.active){ctx.strokeStyle='#152033';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx(r.ear),sy(r.whisker),12,0,Math.PI*2);ctx.stroke();}});
   const te=Number($('#svmTestEar').value),tw=Number($('#svmTestWhisker').value);ctx.fillStyle='#15803d';ctx.beginPath();ctx.moveTo(sx(te),sy(tw)-10);ctx.lineTo(sx(te)+9,sy(tw)+8);ctx.lineTo(sx(te)-9,sy(tw)+8);ctx.closePath();ctx.fill();
   ctx.fillStyle='#42516a';ctx.font='13px sans-serif';ctx.fillText('Ear flappiness →',W-135,H-14);ctx.save();ctx.translate(17,H/2+60);ctx.rotate(-Math.PI/2);ctx.fillText('Whisker length (cm)',0,0);ctx.restore();
@@ -723,30 +772,81 @@ function drawSvmLoss(){
   const cv=$('#svmLossCanvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height,p=42,ep=Number($('#svmEpoch').value),vals=svmHist.map(g=>g.obj),max=Math.max(...vals)*1.12;
   ctx.clearRect(0,0,W,H);ctx.strokeStyle='#e3e8f0';for(let i=0;i<5;i++){const y=p+i*(H-2*p)/4;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(W-p,y);ctx.stroke();}
   const sx=e=>p+((e-1)/4)*(W-2*p),sy=v=>H-p-(v/max)*(H-2*p);ctx.strokeStyle='#b42318';ctx.lineWidth=3;ctx.beginPath();vals.forEach((v,i)=>{if(!i)ctx.moveTo(sx(i+1),sy(v));else ctx.lineTo(sx(i+1),sy(v))});ctx.stroke();
-  vals.forEach((v,i)=>{ctx.fillStyle=(i+1)===ep?'#b42318':'#d7a29e';ctx.beginPath();ctx.arc(sx(i+1),sy(v),6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#42516a';ctx.font='12px sans-serif';ctx.fillText(String(i+1),sx(i+1)-3,H-17);});ctx.fillStyle='#42516a';ctx.fillText('J',10,20);ctx.fillText('Epoch',W-48,H-17);
+  vals.forEach((v,i)=>{ctx.fillStyle=(i+1)===ep?'#b42318':'#d7a29e';ctx.beginPath();ctx.arc(sx(i+1),sy(v),6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#42516a';ctx.font='12px sans-serif';ctx.fillText(String(i+1),sx(i+1)-3,H-17);});
+  ctx.fillStyle='#42516a';ctx.fillText('J',10,20);ctx.fillText('Epoch',W-48,H-17);
 }
-function svmTestScore(g){
-  const te=Number($('#svmTestEar').value),tw=Number($('#svmTestWhisker').value),z=[(te-g.st.meanE)/g.st.sdE,(tw-g.st.meanW)/g.st.sdW],score=g.nw.w[0]*z[0]+g.nw.w[1]*z[1]+g.nw.b;
-  return {te,tw,z,score,pred:score>=0?1:-1};
+function svmKernelParams(){
+  const k=$('#svmKernelChoice').value;
+  if(k==='rbf')return {gamma:Math.max(.001,Number($('#svmGamma')?.value)||.5)};
+  if(k==='poly')return {gamma:Math.max(.001,Number($('#svmPolyGamma')?.value)||1),coef0:Number($('#svmCoef0')?.value)||1,degree:Math.max(1,Math.round(Number($('#svmDegree')?.value)||2))};
+  return {};
+}
+function svmKernelValue(a,b,k,p){
+  const dot=a[0]*b[0]+a[1]*b[1];
+  if(k==='linear')return dot;
+  if(k==='rbf'){const d0=a[0]-b[0],d1=a[1]-b[1];return Math.exp(-p.gamma*(d0*d0+d1*d1));}
+  return Math.pow(p.gamma*dot+p.coef0,p.degree);
+}
+function renderSvmKernelControls(){
+  const k=$('#svmKernelChoice').value;
+  if(k==='linear'){
+    $('#svmKernelParamControls').innerHTML='<div class="field">Kernel parameters<div class="math tiny">None</div></div>';
+    $('#svmKernelParams').innerHTML='<div class="math tiny">K(x,z)=xᵀz</div>';
+  }else if(k==='rbf'){
+    $('#svmKernelParamControls').innerHTML='<label class="field">γ (gamma)<input id="svmGamma" type="number" step="0.05" value="0.5"></label>';
+    $('#svmKernelParams').innerHTML='<div class="math tiny">K(x,z)=exp(−γ‖x−z‖²)</div>';
+    $('#svmGamma').addEventListener('input',renderSvm);
+  }else{
+    $('#svmKernelParamControls').innerHTML='<div class="form-grid"><label class="field">γ<input id="svmPolyGamma" type="number" step="0.1" value="1"></label><label class="field">r<input id="svmCoef0" type="number" step="0.1" value="1"></label><label class="field">Degree d<input id="svmDegree" type="number" min="1" max="5" step="1" value="2"></label></div>';
+    $('#svmKernelParams').innerHTML='<div class="math tiny">K(x,z)=(γxᵀz+r)<sup>d</sup></div>';
+    ['#svmPolyGamma','#svmCoef0','#svmDegree'].forEach(s=>$(s).addEventListener('input',renderSvm));
+  }
+}
+function svmKernelTeachingScore(){
+  const k=$('#svmKernelChoice').value,p=svmKernelParams(),st=svmStats();
+  const test={ear:Number($('#svmTestEar').value),whisker:Number($('#svmTestWhisker').value)},zt=svmZ(test,st);
+  let num=0,den=0;
+  petRows.forEach(r=>{const kv=svmKernelValue(svmZ(r,st),zt,k,p);num+=r.y*kv;den+=Math.abs(kv);});
+  const score=den?num/den:0;
+  return {score,pred:score>=0?1:-1,zt,st};
+}
+function renderSvmKernelMath(){
+  const idx=Number($('#svmKernelRow').value)||0,k=$('#svmKernelChoice').value,p=svmKernelParams(),st=svmStats(),r=petRows[idx];
+  const test={ear:Number($('#svmTestEar').value),whisker:Number($('#svmTestWhisker').value)},a=svmZ(r,st),b=svmZ(test,st),dot=a[0]*b[0]+a[1]*b[1];
+  let html='Training row '+r.id+' ('+r.animal+')<br>Standardized x = ['+fmt(a[0])+', '+fmt(a[1])+']<br>Standardized test z = ['+fmt(b[0])+', '+fmt(b[1])+']<br><br>';
+  if(k==='linear'){
+    html+='K(x,z)=xᵀz<br>= '+fmt(a[0])+'×'+fmt(b[0])+' + '+fmt(a[1])+'×'+fmt(b[1])+'<br>= <b>'+fmt(dot,6)+'</b>';
+  }else if(k==='rbf'){
+    const d0=a[0]-b[0],d1=a[1]-b[1],d2=d0*d0+d1*d1,val=Math.exp(-p.gamma*d2);
+    html+='Δ₁ = '+fmt(a[0])+'−'+fmt(b[0])+' = '+fmt(d0)+'<br>Δ₂ = '+fmt(a[1])+'−'+fmt(b[1])+' = '+fmt(d1)+'<br><br>‖x−z‖² = '+fmt(d0*d0)+' + '+fmt(d1*d1)+' = <b>'+fmt(d2)+'</b><br><br>K(x,z)=exp(−γ‖x−z‖²)<br>= exp(−'+fmt(p.gamma)+'×'+fmt(d2)+')<br>= <b>'+fmt(val,6)+'</b>';
+  }else{
+    const base=p.gamma*dot+p.coef0,val=Math.pow(base,p.degree);
+    html+='xᵀz = '+fmt(a[0])+'×'+fmt(b[0])+' + '+fmt(a[1])+'×'+fmt(b[1])+' = <b>'+fmt(dot)+'</b><br><br>K(x,z)=(γxᵀz+r)<sup>d</sup><br>= ('+fmt(p.gamma)+'×'+fmt(dot)+' + '+fmt(p.coef0)+')<sup>'+p.degree+'</sup><br>= '+fmt(base)+'<sup>'+p.degree+'</sup><br>= <b>'+fmt(val,6)+'</b>';
+  }
+  $('#svmKernelMath').innerHTML=html;
 }
 function renderSvm(){
-  const ep=Number($('#svmEpoch').value),g=svmHist[ep-1],test=svmTestScore(g);drawSvm();drawSvmLoss();
-  $('#svmEpochLabel').textContent=ep+' / 5';$('#svmObjective').textContent=fmt(g.obj);$('#svmViolators').textContent=g.rows.filter(r=>r.active).length+' / 10';$('#svmPred').textContent=test.pred>0?'Cat (+1)':'Dog (−1)';
-  $('#svmTable').innerHTML='<table class="tbl"><thead><tr><th>ID</th><th>Animal</th><th>Ear</th><th>Whisker</th><th>y</th><th>f(x)</th><th>y·f(x)</th><th>Hinge</th></tr></thead><tbody>'+g.rows.map(r=>'<tr class="'+(r.active?'selected':'')+'"><td>'+r.id+'</td><td>'+r.animal+'</td><td>'+fmt(r.ear,1)+'</td><td>'+fmt(r.whisker,1)+'</td><td>'+r.y+'</td><td>'+fmt(r.score,4)+'</td><td>'+fmt(r.margin,4)+'</td><td>'+fmt(r.hinge,4)+'</td></tr>').join('')+'</tbody></table>';
+  const ep=Number($('#svmEpoch').value),g=svmHist[ep-1],teach=svmKernelTeachingScore();drawSvm();drawSvmLoss();
+  $('#svmEpochLabel').textContent=ep+' / 5';$('#svmObjective').textContent=fmt(g.obj);$('#svmViolators').textContent=g.rows.filter(r=>r.active).length+' / 10';$('#svmPred').textContent=teach.pred>0?'Cat (+1)':'Dog (−1)';
+  $('#svmTable').innerHTML='<table class="tbl"><thead><tr><th>ID</th><th>Animal</th><th>Ear</th><th>Whisker</th><th>y</th><th>Linear f(x)</th><th>y·f(x)</th><th>Hinge</th></tr></thead><tbody>'+g.rows.map(r=>'<tr class="'+(r.active?'selected':'')+'"><td>'+r.id+'</td><td>'+r.animal+'</td><td>'+fmt(r.ear,1)+'</td><td>'+fmt(r.whisker,1)+'</td><td>'+r.y+'</td><td>'+fmt(r.score,4)+'</td><td>'+fmt(r.margin,4)+'</td><td>'+fmt(r.hinge,4)+'</td></tr>').join('')+'</tbody></table>';
   const active=g.rows.filter(r=>r.active);
-  $('#svmTrainMath').innerHTML='<div class="kicker">Linear SVM · Epoch '+ep+'</div><h3>Hinge-loss training step</h3><div class="math">Standardize features first:<br>z₁=(ear−'+fmt(g.st.meanE)+')/'+fmt(g.st.sdE)+'; z₂=(whisker−'+fmt(g.st.meanW)+')/'+fmt(g.st.sdW)+'<br><br>Decision score: f(x)=w₁z₁+w₂z₂+b<br>Margin for row i: mᵢ=yᵢf(xᵢ)<br>Hingeᵢ=max(0,1−mᵢ)<br><br>J = ½‖w‖² + C·mean(hinge) = <b>'+fmt(g.obj)+'</b><br>Rows with mᵢ&lt;1: <b>'+active.map(r=>r.id).join(', ')+'</b><br><br>∂J/∂w = w − (C/n)Σ<sub>m&lt;1</sub> yᵢzᵢ = [<b>'+fmt(g.dw[0])+', '+fmt(g.dw[1])+'</b>]<br>∂J/∂b = −(C/n)Σ<sub>m&lt;1</sub> yᵢ = <b>'+fmt(g.db)+'</b><br><br>w(new) = w − η∂J/∂w<br>['+fmt(g.old.w[0])+', '+fmt(g.old.w[1])+'] − '+fmt(g.eta)+'×['+fmt(g.dw[0])+', '+fmt(g.dw[1])+']<br>= <b>['+fmt(g.nw.w[0])+', '+fmt(g.nw.w[1])+']</b><br>b(new) = '+fmt(g.old.b)+' − '+fmt(g.eta)+'×('+fmt(g.db)+') = <b>'+fmt(g.nw.b)+'</b></div>';
-  $('#svmTestMath').innerHTML='<div class="kicker">Test animal at Epoch '+ep+'</div><h3>Classify a new cat/dog sample</h3><div class="math">Input = (ear='+fmt(test.te)+', whisker='+fmt(test.tw)+')<br>Standardized z = ['+fmt(test.z[0])+', '+fmt(test.z[1])+']<br><br>f(x) = '+fmt(g.nw.w[0])+'×'+fmt(test.z[0])+' + '+fmt(g.nw.w[1])+'×'+fmt(test.z[1])+' + '+fmt(g.nw.b)+'<br>= <b>'+fmt(test.score)+'</b><br><br>sign(f(x)) = <b>'+(test.pred>0?'+1 → Cat':'−1 → Dog')+'</b></div>';
-  renderSvmRbf();
+  $('#svmTrainMath').innerHTML='<div class="kicker">Linear SVM · Epoch '+ep+'</div><h3>Hinge-loss training step</h3><div class="math">Standardize features:<br>z₁=(ear−'+fmt(g.st.meanE)+')/'+fmt(g.st.sdE)+'<br>z₂=(whisker−'+fmt(g.st.meanW)+')/'+fmt(g.st.sdW)+'<br><br>f(x)=w₁z₁+w₂z₂+b<br>margin mᵢ=yᵢf(xᵢ)<br>hingeᵢ=max(0,1−mᵢ)<br><br>J=½‖w‖²+C·mean(hinge)=<b>'+fmt(g.obj)+'</b><br>Margin violators: <b>'+active.map(r=>r.id).join(', ')+'</b><br><br>∂J/∂w=[<b>'+fmt(g.dw[0])+', '+fmt(g.dw[1])+'</b>]<br>∂J/∂b=<b>'+fmt(g.db)+'</b><br><br>w(new)=['+fmt(g.old.w[0])+', '+fmt(g.old.w[1])+']−'+fmt(g.eta)+'×['+fmt(g.dw[0])+', '+fmt(g.dw[1])+']<br>=<b>['+fmt(g.nw.w[0])+', '+fmt(g.nw.w[1])+']</b><br>b(new)=<b>'+fmt(g.nw.b)+'</b></div>';
+  $('#svmTestMath').innerHTML='<div class="kicker">'+$('#svmKernelChoice').selectedOptions[0].text+' kernel</div><h3>Classify the test animal</h3><div class="math">Test animal = (ear='+fmt(Number($('#svmTestEar').value))+', whisker='+fmt(Number($('#svmTestWhisker').value))+')<br><br>Teaching kernel score = normalized Σ yᵢK(xᵢ,x′)<br>= <b>'+fmt(teach.score,6)+'</b><br><br>Predicted class = <b>'+(teach.pred>0?'Cat (+1)':'Dog (−1)')+'</b></div><p class="hint">The kernel score panel is for visualizing how different kernels measure similarity. The moving hyperplane above is the separately trained linear SVM.</p>';
+  renderSvmKernelMath();
 }
-function renderSvmRbf(){
-  const idx=Number($('#svmRbfRow').value)||0,gamma=Math.max(0,Number($('#svmGamma').value)||.5),r=petRows[idx],te=Number($('#svmTestEar').value),tw=Number($('#svmTestWhisker').value),de=r.ear-te,dw=r.whisker-tw,d2=de*de+dw*dw,k=Math.exp(-gamma*d2);
-  $('#svmRbfMath').innerHTML='Training row '+r.id+' ('+r.animal+') = ['+fmt(r.ear)+', '+fmt(r.whisker)+']<br>Test point = ['+fmt(te)+', '+fmt(tw)+']<br><br>Δear = '+fmt(r.ear)+'−'+fmt(te)+' = '+fmt(de)+' → squared = '+fmt(de*de)+'<br>Δwhisker = '+fmt(r.whisker)+'−'+fmt(tw)+' = '+fmt(dw)+' → squared = '+fmt(dw*dw)+'<br><br>‖x−x′‖² = '+fmt(de*de)+' + '+fmt(dw*dw)+' = <b>'+fmt(d2)+'</b><br>K(x,x′)=exp(−γ‖x−x′‖²)<br>= exp(−'+fmt(gamma)+'×'+fmt(d2)+') = <b>'+fmt(k,6)+'</b>';
-}
-buildSvm();$('#svmRbfRow').innerHTML=petRows.map((r,i)=>'<option value="'+i+'">'+r.id+' · '+r.animal+'</option>').join('');renderSvm();
+buildSvm();
+$('#svmKernelRow').innerHTML=petRows.map((r,i)=>'<option value="'+i+'">'+r.id+' · '+r.animal+'</option>').join('');
+renderSvmKernelControls();renderSvm();
 function stopSvm(){if(svmTimer){clearInterval(svmTimer);svmTimer=null}}
-$('#svmEpoch').addEventListener('input',()=>{stopSvm();renderSvm()});$('#svmPrevEpoch').addEventListener('click',()=>{stopSvm();$('#svmEpoch').value=clamp(Number($('#svmEpoch').value)-1,1,5);renderSvm()});$('#svmNextEpoch').addEventListener('click',()=>{stopSvm();$('#svmEpoch').value=clamp(Number($('#svmEpoch').value)+1,1,5);renderSvm()});
-$('#svmTrainAuto').addEventListener('click',()=>{if(svmTimer)return;let e=Number($('#svmEpoch').value);if(e>=5)e=0;svmTimer=setInterval(()=>{e++;$('#svmEpoch').value=e;renderSvm();if(e>=5)stopSvm()},1100)});$('#svmTrainPause').addEventListener('click',stopSvm);
-$('#svmClassify').addEventListener('click',renderSvm);$('#svmTestEar').addEventListener('input',renderSvm);$('#svmTestWhisker').addEventListener('input',renderSvm);$('#svmRbfRow').addEventListener('change',renderSvmRbf);$('#svmGamma').addEventListener('input',renderSvmRbf);
+$('#svmEpoch').addEventListener('input',()=>{stopSvm();renderSvm()});
+$('#svmPrevEpoch').addEventListener('click',()=>{stopSvm();$('#svmEpoch').value=clamp(Number($('#svmEpoch').value)-1,1,5);renderSvm()});
+$('#svmNextEpoch').addEventListener('click',()=>{stopSvm();$('#svmEpoch').value=clamp(Number($('#svmEpoch').value)+1,1,5);renderSvm()});
+$('#svmTrainAuto').addEventListener('click',()=>{if(svmTimer)return;let e=Number($('#svmEpoch').value);if(e>=5)e=0;svmTimer=setInterval(()=>{e++;$('#svmEpoch').value=e;renderSvm();if(e>=5)stopSvm()},1100)});
+$('#svmTrainPause').addEventListener('click',stopSvm);
+$('#svmClassify').addEventListener('click',renderSvm);
+$('#svmTestEar').addEventListener('input',renderSvm);$('#svmTestWhisker').addEventListener('input',renderSvm);
+$('#svmKernelRow').addEventListener('change',renderSvmKernelMath);
+$('#svmKernelChoice').addEventListener('change',()=>{renderSvmKernelControls();renderSvm();});
 })();
 </script>
 <!-- build-version: lstm-v1-2026-09-21 -->
